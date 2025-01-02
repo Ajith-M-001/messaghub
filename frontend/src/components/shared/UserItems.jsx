@@ -2,8 +2,9 @@
 import { Avatar, IconButton, ListItem, Stack, Typography } from "@mui/material";
 import { memo } from "react";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 
-const UserItems = ({ user, handler, handlerIsLoading }) => {
+const UserItems = ({ user, handler, handlerIsLoading, isAdded = false }) => {
   const { _id, name, avatar } = user;
 
   return (
@@ -62,7 +63,7 @@ const UserItems = ({ user, handler, handlerIsLoading }) => {
             margin: "auto 0", // Center vertically
           }}
         >
-          <AddCircleOutlineIcon />
+          {isAdded ? <RemoveCircleOutlineIcon /> : <AddCircleOutlineIcon />}
         </IconButton>
       </Stack>
     </ListItem>

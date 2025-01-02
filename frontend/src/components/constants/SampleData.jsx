@@ -23,19 +23,36 @@ export const sampleChats = [
   },
 ];
 
-export const sampleUsers = () => {
-  return [
-    {
-      _id: "1",
+export const sampleUsers = [
+  {
+    _id: "1",
+    name: "Jane Doe",
+    avatar:
+      "https://www.w3.org/thumbnails/200/avatar-images/7mtpjeh4in8kw04ksso8ss4ocsksswo.webp",
+  },
+  {
+    _id: "2",
+    name: "body Boi",
+    avatar:
+      "https://www.w3.org/thumbnails/200/avatar-images/7mtpjeh4in8kw04ksso8ss4ocsksswo.webp",
+  },
+];
+
+export const sampleNotification = [
+  {
+    _id: "1",
+    sender: {
       name: "Jane Doe",
       avatar:
         "https://www.w3.org/thumbnails/200/avatar-images/7mtpjeh4in8kw04ksso8ss4ocsksswo.webp",
     },
-    {
-      _id: "2",
+  },
+  {
+    _id: "2",
+    sender: {
       name: "body Boi",
       avatar:
         "https://www.w3.org/thumbnails/200/avatar-images/7mtpjeh4in8kw04ksso8ss4ocsksswo.webp",
     },
-  ];
-};
+  },
+];
