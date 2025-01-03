@@ -56,3 +56,38 @@ export const sampleNotification = [
     },
   },
 ];
+
+export const sampleMessage = [
+  {
+    _id: "sfnsdjkfsdnfkjs",
+    content: "L*uda ka Message hai", // Replace with appropriate content if needed
+    attachments: [
+      {
+        public_id: "asdsad",
+        url: "https://www.w3schools.com/howto/img_avatar.png",
+      },
+    ],
+    sender: {
+      _id: "user._id",
+      name: "Chaman",
+    },
+    chat: "chatId",
+    createdAt: "2024-02-12T10:41:30.630Z", // ISO format corrected
+  },
+  {
+    _id: "sfnsdjkfsdnfkjsbnd",
+    content: "L*uda ka Message hai 22", // Replace with appropriate content if needed
+    attachments: [
+      {
+        public_id: "asdsad",
+        url: "https://www.w3schools.com/howto/img_avatar.png",
+      },
+    ],
+    sender: {
+      _id: "1",
+      name: "Chaman 2",
+    },
+    chat: "chatId",
+    createdAt: "2024-02-12T10:41:30.630Z", // ISO format corrected
+  },
+];

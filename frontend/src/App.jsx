@@ -6,7 +6,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 const HomeWithLayout = lazy(() => import("./pages/HomeWithLayout"));
 const Login = lazy(() => import("./pages/Login"));
 const ChatWithLayout = lazy(() => import("./pages/ChatWithLayout"));
-const GroupWithLayout = lazy(() => import("./pages/GroupWithLayout"));
+const Group = lazy(() => import("./pages/Group"));
 
 let user = true;
 
@@ -18,8 +18,8 @@ const App = () => {
           <Route element={<ProtectedRoute user={user} />}>
             <Route path="/" element={<HomeWithLayout />} />
             <Route path="/chat/:chatId" element={<ChatWithLayout />} />
-            <Route path="/group" element={<GroupWithLayout />} />
           </Route>
+          <Route path="/group" element={<Group />} />
           <Route
             path="/login"
             element={

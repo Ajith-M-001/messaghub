@@ -30,8 +30,8 @@ const Profile = () => {
     <Stack spacing={"2rem"} direction="column" alignItems={"center"}>
       <Avatar
         sx={{
-          width: 200,
-          height: 200,
+          width: "6.25rem",
+          height: "6.25rem",
           objectFit: "contain",
           marginBottom: "1rem",
           border: "5px solid white",

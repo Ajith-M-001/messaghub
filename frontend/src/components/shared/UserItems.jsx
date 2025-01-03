@@ -3,6 +3,7 @@ import { Avatar, IconButton, ListItem, Stack, Typography } from "@mui/material";
 import { memo } from "react";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import { transformImage } from "../../lib/features";
 
 const UserItems = ({ user, handler, handlerIsLoading, isAdded = false }) => {
   const { _id, name, avatar } = user;
@@ -24,7 +25,7 @@ const UserItems = ({ user, handler, handlerIsLoading, isAdded = false }) => {
         }}
       >
         <Avatar
-          src={avatar}
+          src={transformImage(avatar)}
           alt={name}
           sx={{
             width: 40,

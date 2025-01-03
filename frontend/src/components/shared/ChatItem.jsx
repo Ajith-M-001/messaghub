@@ -85,7 +85,6 @@ const ChatItem = ({
   handleDeleteChat,
   index = 0,
 }) => {
-  console.log("newMessageAlert");
   return (
     <Link
       sx={{ padding: "0" }}

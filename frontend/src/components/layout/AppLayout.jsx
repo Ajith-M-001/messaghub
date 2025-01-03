@@ -11,20 +11,20 @@ const AppLayout = (WrappedComponent) => {
     const params = useParams();
     const { chatId } = params;
 
-    const handleDeleteChat = (e, chatId , groupChat) => {
+    const handleDeleteChat = (e, chatId, groupChat) => {
       e.preventDefault();
       console.log("Delete chat with id: ", chatId, groupChat);
     };
 
     const newMessagesAlerts = [
       { chatId: "1", count: 4 },
-      { chatId: "2", count: 0},
+      { chatId: "2", count: 0 },
     ];
     return (
       <>
         <Title title="MessageHup" />
         <Header />
-        <Grid2 container sx={{ height: "calc(100vh - 4rem)" }}>
+        <Grid2 container sx={{ height: "calc(100vh - 5rem)" }}>
           <Grid2
             size={{ sm: 4, md: 3 }}
             sx={{ display: { xs: "none", sm: "block" } }}
@@ -57,7 +57,7 @@ const AppLayout = (WrappedComponent) => {
           </Grid2>
         </Grid2>
 
-        <footer>Footer</footer>
+        {/* <Footer /> */}
       </>
     );
   };

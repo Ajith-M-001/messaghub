@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Avatar, AvatarGroup, Box, Stack } from "@mui/material";
+import { transformImage } from "../../lib/features";
 
 //todo transform this into a reusable component
 const AvatarCard = ({ avatar = [], max = 4 }) => {
@@ -10,7 +11,7 @@ const AvatarCard = ({ avatar = [], max = 4 }) => {
           {avatar.map((i, index) => (
             <Avatar
               key={Math.random() * 100}
-              src={i}
+              src={transformImage(i)}
               alt={`avatar-${index}`}
               sx={{
                 width: "3rem",
