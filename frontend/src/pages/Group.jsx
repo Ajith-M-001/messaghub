@@ -18,11 +18,12 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { lazy, memo, Suspense, useEffect, useState } from "react";
 import { Link } from "../components/styles/styledComponents";
 import AvatarCard from "../components/shared/AvatarCard";
-import { sampleChats } from "../components/constants/SampleData";
+import { sampleChats, sampleUsers } from "../components/constants/SampleData";
 import CreateIcon from "@mui/icons-material/Create";
 import DoneIcon from "@mui/icons-material/Done";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import UserItems from "../components/shared/UserItems";
 
 const ConfirmDeleteDialog = lazy(() =>
   import("../components/dialogs/ConfirmDeleteDialog")
@@ -40,7 +41,11 @@ const Group = () => {
   const [updatedGroupName, setUpdatedGroupName] = useState("");
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false);
 
-  const isAddmember = true;
+  const isAddmember = false;
+
+  const removeMemberHandler = (id) => {
+    console.log("remove member", id);
+  };
 
   const openconfirmDeleteHandler = () => {
     setConfirmDeleteDialog(true);
@@ -60,8 +65,10 @@ const Group = () => {
   };
 
   useEffect(() => {
-    setGroupName(`Group Name ${chatId}`);
-    setUpdatedGroupName(`Group Name ${chatId}`);
+    if (chatId) {
+      setGroupName(`Group Name ${chatId}`);
+      setUpdatedGroupName(`Group Name ${chatId}`);
+    }
 
     return () => {
       setGroupName("");
@@ -209,7 +216,7 @@ const Group = () => {
       >
         {IconsBtn}
 
-        {GroupName && (
+        {groupName && (
           <>
             {GroupName}
             <Typography
@@ -225,11 +232,23 @@ const Group = () => {
               boxSizing={"border-box"}
               padding={{ sm: "1rem ", xs: "0", md: "1rem 4rem" }}
               spacing={"2rem"}
-              bgcolor={"bisque"}
               height={"50%"}
               overflow={"auto"}
             >
               {/* group members */}
+              {sampleUsers.map((user) => (
+                <UserItems
+                  key={user._id}
+                  user={user}
+                  isAdded
+                  styling={{
+                    boxShadow: "rgba(0, 0, 0, 0.2) 0px 0px 5px",
+                    padding: "1rem 2rem",
+                    borderRadius: "1rem",
+                  }}
+                  handler={removeMemberHandler}
+                />
+              ))}
             </Stack>
             {buttonGroup}
           </>
@@ -270,7 +289,17 @@ const Group = () => {
 
 const GroupList = ({ w = "100%", myGroups = [], chatId }) => {
   return (
-    <Stack width={w} padding={"1rem"}>
+    <Stack
+      width={w}
+      padding={"1rem"}
+      sx={{
+        overflow: "auto",
+        height: "calc(100vh - 4rem)",
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
+      }}
+    >
       {myGroups.length > 0 ? (
         myGroups.map((group) => (
           <GroupListItem key={group._id} group={group} chatId={chatId} />
@@ -296,7 +325,7 @@ const GroupListItem = memo(({ group, chatId }) => {
         }
       }}
     >
-      <Stack direction={"row"} spacing={"1rem"} alignItems={"center"}>
+      <Stack direction={"row"} spacing={"3.5rem"} alignItems={"center"}>
         <AvatarCard avatar={avatar} />
         <Typography textAlign="center" variant="h6">
           {name}

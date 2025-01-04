@@ -1,7 +1,7 @@
 import { Grid2 } from "@mui/material";
 import Title from "../shared/Title";
 import Header from "./Header";
-import ChatList from "../specific/Chatlist";
+import ChatList from "../specific/ChatList";
 import { sampleChats } from "../constants/SampleData";
 import { useParams } from "react-router";
 import Profile from "../specific/Profile";

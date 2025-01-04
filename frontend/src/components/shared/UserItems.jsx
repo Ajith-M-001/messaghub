@@ -5,7 +5,13 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { transformImage } from "../../lib/features";
 
-const UserItems = ({ user, handler, handlerIsLoading, isAdded = false }) => {
+const UserItems = ({
+  user,
+  handler,
+  handlerIsLoading,
+  isAdded = false,
+  styling = {},
+}) => {
   const { _id, name, avatar } = user;
 
   return (
@@ -23,6 +29,7 @@ const UserItems = ({ user, handler, handlerIsLoading, isAdded = false }) => {
         sx={{
           minHeight: 48, // Ensure consistent height
         }}
+        {...styling}
       >
         <Avatar
           src={transformImage(avatar)}
