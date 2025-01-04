@@ -70,7 +70,7 @@
 // export default memo(ChatItem);
 
 import { memo } from "react";
-import { Link } from "../styles/StyledComponents"; // Import the styled Link component
+import { Link } from "../styles/styledComponents"; // Import the styled Link component
 import { Stack, Typography, Box } from "@mui/material"; // MUI components
 import AvatarCard from "./AvatarCard";
 
@@ -94,7 +94,7 @@ const ChatItem = ({
       <div
         style={{
           display: "flex",
-          gap: "1rem",
+          gap: "3.5rem",
           alignItems: "center",
           padding: "1rem",
           backgroundColor: sameSender ? "black" : "unset",

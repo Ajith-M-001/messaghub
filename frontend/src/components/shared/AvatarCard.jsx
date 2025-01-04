@@ -6,7 +6,7 @@ import { transformImage } from "../../lib/features";
 const AvatarCard = ({ avatar = [], max = 4 }) => {
   return (
     <Stack direction={"row"} spacing={0.5}>
-      <AvatarGroup max={max}>
+      <AvatarGroup max={max} sx={{ position: "relative" }}>
         <Box width={"5rem"} height={"3rem"}>
           {avatar.map((i, index) => (
             <Avatar
@@ -19,7 +19,7 @@ const AvatarCard = ({ avatar = [], max = 4 }) => {
                 position: "absolute",
                 left: {
                   xs: `${index + 1}rem`,
-                  sm: `${index + 0.8}rem`,
+                  sm: `${index + 1.8}rem`,
                 },
               }}
             />
