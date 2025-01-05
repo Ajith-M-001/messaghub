@@ -1,9 +1,9 @@
+/* eslint-disable react/prop-types */
 import {
   Box,
   Drawer,
   Grid2,
   IconButton,
-  Menu,
   Stack,
   styled,
   Typography,
@@ -11,131 +11,178 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState } from "react";
-import { useLocation } from "react-router";
-// import { Link } from "../styles/styledComponents";
+import { Link as LinkComponent, Navigate, useLocation } from "react-router";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import PeopleIcon from "@mui/icons-material/People";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import GroupsIcon from "@mui/icons-material/Groups";
-import { Link as LinkComponent } from "react-router";
+import MessageIcon from "@mui/icons-material/Message";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 const Link = styled(LinkComponent)({
   textDecoration: "none",
-  borderRadius: "2rem",
   color: "black",
-  padding: "1rem 2rem",
-  "&:hover": {
-    backgroundColor: "rgba(0,0,0,0.1)",
-  },
+  padding: "0.2rem",
 });
 
-export const adminTab = [
+const ADMIN_MENU = [
   {
     name: "Dashboard",
-    link: "/admin/dashboard",
-    icon: <DashboardIcon />,
+    path: "/admin/dashboard",
+    icon: DashboardIcon,
   },
   {
     name: "Users",
-    link: "/admin/users-management",
-    icon: <PeopleIcon />,
+    path: "/admin/users",
+    icon: PeopleAltIcon,
   },
   {
     name: "Chats",
-    link: "/admin/chats-managemnet",
-    icon: <GroupsIcon />,
+    path: "/admin/chats",
+    icon: GroupsIcon,
   },
   {
     name: "messages",
-    link: "/admin/messages-managemnet",
-    icon: <GroupsIcon />,
+    path: "/admin/messages",
+    icon: MessageIcon,
   },
 ];
 
-const Sidebar = ({ w = "50vw" }) => {
+const isAdmin = true;
+
+const Sidebar = ({ width = "100%" }) => {
   const location = useLocation();
-  console.log(location);
+
+  const logoutHandler = () => {
+    alert("Logout");
+  };
+
   return (
-    <>
-      <Stack width={w} direction={"column"} padding={"3rem"}>
-        <Typography variant="h5">Admin Dashboard</Typography>
+    <Stack width={width} direction={"column"} p={"1.2rem"} spacing={"1rem"}>
+      <Typography textAlign={"center"} variant="h6" textTransform={"uppercase"}>
+        Admin Dashboard
+      </Typography>
+      <Stack>
+        {ADMIN_MENU.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          return (
+            <Link to={item.path} key={item.name}>
+              <Stack
+                direction={"row"}
+                spacing={"1rem"}
+                alignItems={"center"}
+                sx={{
+                  backgroundColor: isActive ? "rgba(0,0,0,0.1)" : "transparent",
+                  color: "black",
+                  borderRadius: "2rem",
+                  padding: "1rem",
+                  transition: "background-color 0.3s ease-out",
+                  "&:hover": {
+                    backgroundColor: "rgba(0,0,0,0.1)",
+                  },
+                }}
+              >
+                <Icon />
+                <Typography>{item.name}</Typography>
+              </Stack>
+            </Link>
+          );
+        })}
+        <Link onClick={logoutHandler}>
+          <Stack
+            direction={"row"}
+            spacing={"1rem"}
+            alignItems={"center"}
+            sx={{
+              backgroundColor: "transparent",
+              color: "black",
+              borderRadius: "2rem",
+              padding: "1rem",
+              transition: "background-color 0.3s ease-out",
+              "&:hover": {
+                backgroundColor: "rgba(0,0,0,0.1)",
+              },
+            }}
+          >
+            <LogoutIcon />
+            <Typography>Logout</Typography>
+          </Stack>
+        </Link>
       </Stack>
-      <Stack spacing={"1rem"}>
-        {adminTab.map((tab) => (
-          <Link key={tab.name} to={tab.link}>
-            <Stack
-              direction={"row"}
-              spacing={"1rem"}
-              alignItems={"center"}
-              padding={"1rem"}
-              bgcolor={location.pathname === tab.link ? "lightgray" : ""}
-            >
-              {tab.icon}
-              <Typography>{tab.name}</Typography>
-            </Stack>
-          </Link>
-        ))}
-      </Stack>
-    </>
+    </Stack>
   );
 };
 
 const AdminLayout = ({ children }) => {
   const [isMobile, setIsMobile] = useState(false);
-
   const handleMobile = () => {
     setIsMobile((prev) => !prev);
   };
+
+  if (!isAdmin) return <Navigate to="/admin" />;
   return (
-    <Grid2 container sx={{ height: "100vh" }}>
-      <Box
-        sx={{
-          display: { xs: "block", md: "none" },
-          position: "fixed",
-          top: "1rem",
-          right: "1rem",
-        }}
-      >
-        <IconButton onClick={handleMobile}>
-          <MenuIcon />
-        </IconButton>
-      </Box>
-      <Grid2
-        size={{ md: 4, lg: 3 }}
-        sx={{ display: { xs: "none", md: "block" } }}
-      >
-        <Sidebar />
-      </Grid2>
-      <Grid2
-        size={{ xs: 12, md: 8, lg: 9 }}
-        sx={{ padding: "2rem" }}
-        bgcolor="lightgray"
-      >
-        {children}
-      </Grid2>
-      {isMobile && (
-        <Drawer
+    <>
+      <Grid2 direction={"row"} container sx={{ height: "100vh" }}>
+        <Box
           sx={{
+            display: { xs: "block", md: "none" },
+            position: "fixed",
+            top: "2.3rem",
+            right: "2rem",
+          }}
+        >
+          <IconButton onClick={handleMobile}>
+            <MenuIcon />
+          </IconButton>
+        </Box>
+        <Grid2
+          size={{ md: 3, lg: 4 }}
+          sx={{
+            display: { xs: "none", md: "block" },
+          }}
+        >
+          <Sidebar />
+        </Grid2>
+
+        <Grid2
+          size={{ xs: 12, md: 9, lg: 8 }}
+          sx={{
+            overflow: "auto",
+            height: "100%",
+            bgcolor: "rgba(0,0,0,0.1)",
+          }}
+        >
+          {children}
+        </Grid2>
+      </Grid2>
+      <Drawer
+        sx={{
+          display: {
+            xs: "block",
+            md: "none",
+          },
+        }}
+        anchor="right"
+        open={isMobile}
+        onClose={handleMobile}
+      >
+        <IconButton
+          onClick={handleMobile}
+          sx={{
+            position: "fixed",
+            top: "1rem",
+            right: "1rem",
             display: {
               xs: "block",
               md: "none",
             },
           }}
-          anchor="right"
-          open={isMobile}
-          onClose={handleMobile}
         >
-          {isMobile && (
-            <IconButton
-              sx={{ position: "fixed", top: "1rem", right: "1rem" }}
-              onClick={handleMobile}
-            >
-              <CloseIcon />
-            </IconButton>
-          )}
-          <Sidebar width="50vw" />
-        </Drawer>
-      )}
-    </Grid2>
+          <CloseIcon />
+        </IconButton>
+        <Sidebar width="50vw" />
+      </Drawer>
+    </>
   );
 };
 
