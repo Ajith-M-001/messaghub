@@ -1,8 +1,14 @@
-import { ALERT, REFETCH_CHATS } from "../constants/events.js";
+import {
+  ALERT,
+  NEW_ATTACHMENT,
+  NEW_MESSAGE_ALERT,
+  REFETCH_CHATS,
+} from "../constants/events.js";
 import Chat from "../model/chat.js";
 import { emitEvent } from "../utils/emitEvent.js";
 import { getOtherMember } from "../utils/helper.js";
 import User from "../model/user.js";
+import Message from "../model/message.js";
 
 export const newGroupChat = async (req, res) => {
   try {
@@ -251,12 +257,10 @@ export const leaveGroup = async (req, res) => {
 
     //you are not a member of this group
     if (!chat.members.includes(req.user.userId)) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "You are not a member of this group",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "You are not a member of this group",
+      });
     }
 
     if (!chat) {
@@ -299,6 +303,120 @@ export const leaveGroup = async (req, res) => {
     emitEvent(req, ALERT, chat.members, `${user.name} left the group`);
 
     res.status(200).json({ success: true, message: "Left the group" });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const sendAttachments = async (req, res) => {
+  try {
+    const { chatId } = req.body;
+
+    if (!chatId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    const [chat, user] = await Promise.all([
+      Chat.findById(chatId),
+      User.findById(req.user.userId, "name"),
+    ]);
+    if (!chat) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Chat not found" });
+    }
+
+    if (!chat.groupChat) {
+      return res
+        .status(400)
+        .json({ success: false, message: "This is not a group chat" });
+    }
+
+    const files = req.files || [];
+
+    if (files.length < 1) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No files uploaded" });
+    }
+
+    //upload files to cloudinary
+    const attachements = ["lol ", "lmao"];
+    const messageForDB = {
+      content: "",
+      attachements,
+      sender: user._id,
+      chat: chatId,
+    };
+    const messageForRealTime = {
+      ...messageForDB,
+      sender: {
+        _id: user._id,
+        name: user.name,
+      },
+    };
+
+    const message = await Message.create(messageForDB);
+
+    emitEvent(req, NEW_ATTACHMENT, chat.members, {
+      message: messageForRealTime,
+      chatId,
+    });
+    emitEvent(req, NEW_MESSAGE_ALERT, chat.members, {
+      chatId,
+    });
+
+    res.status(200).json({ success: true, message });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getChatDetails = async (req, res) => {
+  try {
+    const chatId = req.params.id;
+
+    if (!chatId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+    if (req.query.populate === "true") {
+      const chat = await Chat.findById(chatId).populate(
+        "members",
+        "name username avatar"
+      );
+
+      if (!chat) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Chat not found" });
+      }
+
+      console.log(
+        "chatdsfasd",
+        chat.members.map((member) => member.avatar.url)
+      );
+
+      chat.members = chat.members.map((member) => {
+        // console log member
+        console.log("Member:", member);
+
+        return {
+          _id: member._id,
+          name: member.name,
+          username: member.username,
+          avatar: member.avatar?.url || "",
+        };
+      });
+
+      console.log("chatdasfdsfasd", chat);
+
+      res.status(200).json({ success: true, chat });
+    } else {
+    }
   } catch (error) {
     console.log(error);
   }

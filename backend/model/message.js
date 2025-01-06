@@ -5,7 +5,6 @@ const messageSchema = new mongoose.Schema(
   {
     content: {
       type: String,
-      required: true, // Message content must be provided
     },
     sender: {
       type: mongoose.Schema.Types.ObjectId,
