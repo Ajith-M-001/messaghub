@@ -9,6 +9,7 @@ import { emitEvent } from "../utils/emitEvent.js";
 import { getOtherMember } from "../utils/helper.js";
 import User from "../model/user.js";
 import Message from "../model/message.js";
+import { deleteFilesFromCloudinary } from "../utils/cloudinaary.js";
 
 export const newGroupChat = async (req, res) => {
   try {
@@ -362,10 +363,10 @@ export const sendAttachments = async (req, res) => {
 
     emitEvent(req, NEW_ATTACHMENT, chat.members, {
       message: messageForRealTime,
-      chatId,
+      chat: chatId,
     });
     emitEvent(req, NEW_MESSAGE_ALERT, chat.members, {
-      chatId,
+      chat: chatId,
     });
 
     res.status(200).json({ success: true, message });
@@ -384,10 +385,9 @@ export const getChatDetails = async (req, res) => {
         .json({ success: false, message: "All fields are required" });
     }
     if (req.query.populate === "true") {
-      const chat = await Chat.findById(chatId).populate(
-        "members",
-        "name username avatar"
-      );
+      const chat = await Chat.findById(chatId)
+        .populate("members", "name username avatar")
+        .lean();
 
       if (!chat) {
         return res
@@ -416,8 +416,154 @@ export const getChatDetails = async (req, res) => {
 
       res.status(200).json({ success: true, chat });
     } else {
+      const chat = await Chat.findById(chatId);
+
+      if (!chat) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Chat not found" });
+      }
+
+      res.status(200).json({ success: true, chat });
     }
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const renameGroup = async (req, res) => {
+  try {
+    const chatId = req.params.id;
+    const { name } = req.body;
+
+    if (!chatId || !name) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Chat not found" });
+    }
+
+    if (!chat.groupChat) {
+      return res
+        .status(400)
+        .json({ success: false, message: "This is not a group chat" });
+    }
+
+    if (chat.creator.toString() !== req.user.userId.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not the creator of this group",
+      });
+    }
+
+    chat.name = name;
+    await chat.save();
+
+    emitEvent(req, REFETCH_CHATS, chat.members);
+
+    res.status(200).json({ success: true, message: "Group renamed" });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const deleteChat = async (req, res) => {
+  try {
+    const chatId = req.params.id;
+
+    // Validate chat ID
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Chat not found" });
+    }
+
+    // Check if the user has permission to delete the chat
+    if (
+      chat.groupChat &&
+      chat.creator.toString() !== req.user.userId.toString()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not the creator of this group",
+      });
+    }
+
+    if (!chat.groupChat && !chat.members.includes(req.user.userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not a member of this chat",
+      });
+    }
+
+    // Find messages with attachments
+    const messagesWithAttachments = await Message.find({
+      chat: chatId,
+      attachments: { $exists: true, $ne: [] },
+    });
+
+    // Collect public_ids of files to delete from Cloudinary
+    const public_ids = [];
+    messagesWithAttachments.forEach((message) => {
+      message.attachments.forEach((attachment) =>
+        public_ids.push(attachment.public_id)
+      );
+    });
+
+    // Delete files from Cloudinary, delete chat, and delete messages in parallel
+    await Promise.all([
+      deleteFilesFromCloudinary(public_ids), // This function should handle deleting files from Cloudinary
+      chat.deleteOne(), // Delete the chat document
+      Message.deleteMany({ chat: chatId }), // Delete all messages in this chat
+    ]);
+
+    // Emit an event to notify the members that the chat has been deleted
+    emitEvent(req, REFETCH_CHATS, chat.members);
+
+    return res.status(200).json({ success: true, message: "Chat deleted" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const getMessages = async (req, res) => {
+  try {
+    const chatId = req.params.id;
+    const { page = 1 } = req.query;
+    const limit = 20;
+    const skip = (page - 1) * limit;
+
+    const [messages, totalMessagesCount] = await Promise.all([
+      Message.find({ chat: chatId })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .skip(skip)
+        .populate("sender", "name avatar")
+        .lean(),
+      Message.countDocuments({ chat: chatId }),
+    ]);
+
+    const totalPages = Math.ceil(totalMessagesCount / limit);
+    const hasNextPage = page < totalPages;
+
+    res.status(200).json({
+      success: true,
+      messages,
+      totalMessagesCount,
+      totalPages,
+      hasNextPage,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

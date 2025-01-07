@@ -9,6 +9,9 @@ import {
   leaveGroup,
   sendAttachments,
   getChatDetails,
+  renameGroup,
+  deleteChat,
+  getMessages,
 } from "../controllers/chat.js";
 import { attachmentMulter } from "../middlewares/multer.js";
 
@@ -23,6 +26,7 @@ router.put("/add-member", addMembers);
 router.put("/remove-member", removeMembers);
 router.delete("/leave/:id", leaveGroup);
 router.post("/message", attachmentMulter, sendAttachments);
-router.route("/:id").get(getChatDetails).put().delete();
+router.get('/message/:id', getMessages);
+router.route("/:id").get(getChatDetails).put(renameGroup).delete(deleteChat);
 
 export default router;
