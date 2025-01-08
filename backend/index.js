@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import userRouter from "./routes/user.js";
 import chatRouter from "./routes/chat.js";
+import adminRouter from "./routes/admin.js";
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
@@ -25,6 +26,7 @@ app.use(cors());
 // Use userRouter for routes
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/chat", chatRouter);
+app.use("/api/v1/admin", adminRouter);
 
 // Define a simple route
 app.get("/", (req, res) => {
