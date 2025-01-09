@@ -8,17 +8,76 @@ import adminRouter from "./routes/admin.js";
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
+import { Server } from "socket.io";
+import { createServer } from "http"; // Import http to create a server
+import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from "./constants/events.js";
+import { v4 as uuid } from "uuid";
+import { getSockets } from "./utils/helper.js";
+import Message from "./model/message.js";
 
 // Load environment variables from .env file
 dotenv.config();
 
 // Initialize Express app
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {});
+const userSocketIDs = new Map();
+
+io.on("connection", (socket) => {
+  const user = {
+    name: "John Doe",
+    _id: "asdfasdf",
+  };
+
+  userSocketIDs.set(user._id.toString(), socket.id);
+  console.log(userSocketIDs);
+
+  socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {
+    const messageForRealTime = {
+      content: message,
+      _id: uuid(),
+      sender: {
+        _id: user._id,
+        name: user.name,
+      },
+      chatId,
+      createdAt: new Date().toISOString(), // Corrected this line
+    };
+
+    const messageForDB = {
+      content: message,
+      chat: chatId,
+      sender: user._id,
+    };
+
+    const userSocket = getSockets(members);
+
+    io.to(userSocket).emit(NEW_MESSAGE, {
+      chatId,
+      message: messageForRealTime,
+    });
+    io.to(userSocket).emit(NEW_MESSAGE_ALERT, { chatId });
+
+    try {
+      await Message.create(messageForDB);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+    userSocketIDs.delete(user._id.toString());
+  });
+});
 
 // Middleware to parse JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+io.use((socket, next) => {});
 
 // Enable CORS
 app.use(cors());
@@ -43,7 +102,7 @@ const startServer = async () => {
 
     // Start the server on a port from environment variables
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });
   } catch (err) {
@@ -54,3 +113,5 @@ const startServer = async () => {
 
 // Start the server
 startServer();
+
+export { app, httpServer, io, userSocketIDs };

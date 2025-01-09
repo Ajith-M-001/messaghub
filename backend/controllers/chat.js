@@ -414,7 +414,7 @@ export const getChatDetails = async (req, res) => {
 
       console.log("chatdasfdsfasd", chat);
 
-      res.status(200).json({ success: true, chat });
+      return res.status(200).json({ success: true, chat });
     } else {
       const chat = await Chat.findById(chatId);
 
@@ -424,10 +424,13 @@ export const getChatDetails = async (req, res) => {
           .json({ success: false, message: "Chat not found" });
       }
 
-      res.status(200).json({ success: true, chat });
+      return res.status(200).json({ success: true, chat });
     }
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -468,7 +471,7 @@ export const renameGroup = async (req, res) => {
 
     emitEvent(req, REFETCH_CHATS, chat.members);
 
-    res.status(200).json({ success: true, message: "Group renamed" });
+    return res.status(200).json({ success: true, message: "Group renamed" });
   } catch (error) {
     console.log(error);
   }
@@ -555,7 +558,7 @@ export const getMessages = async (req, res) => {
     const totalPages = Math.ceil(totalMessagesCount / limit);
     const hasNextPage = page < totalPages;
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       messages,
       totalMessagesCount,
@@ -564,6 +567,6 @@ export const getMessages = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };

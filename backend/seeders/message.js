@@ -58,4 +58,4 @@ const createSampleMessage = async (chatId, numMessages) => {
 };
 
 // Call the function with the desired number of users
-createSampleMessage("677a7c50006d2437c36807f3", 30); // Replace 10 with the number of users you want to create
+createSampleMessage("677c82a23a5e83ee44c45aff", 16); // Replace 10 with the number of users you want to create

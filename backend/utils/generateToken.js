@@ -7,5 +7,12 @@ const generateToken = ({ userId }) => {
     { expiresIn: "12h" } // Token expires in 12 hours
   );
 };
+const generateAdminToken = ({ secretKey }) => {
+  return jwt.sign(
+    { secretKey },
+    process.env.JWT_SECRET,
+    { expiresIn: "12h" } // Token expires in 12 hours
+  );
+};
 
-export default generateToken;
+export { generateToken, generateAdminToken };

@@ -1,6 +1,6 @@
 import User from "../model/user.js";
 import bcrypt from "bcrypt";
-import generateToken from "../utils/generateToken.js";
+import { generateToken } from "../utils/generateToken.js";
 import Chat from "../model/chat.js";
 import Request from "../model/request.js";
 import { NEW_REQUEST, REFETCH_CHATS } from "../constants/events.js";
