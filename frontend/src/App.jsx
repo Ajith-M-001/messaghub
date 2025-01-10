@@ -1,7 +1,12 @@
 import { BrowserRouter, Route, Routes } from "react-router"; // Correct import
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { MUILayoutCircularLoader } from "./components/loaders";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { getMyProfile } from "./components/constants/config";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuth, userExists, userNotExists } from "./redux/slices/auth";
+import axios from "axios";
+import { Toaster } from "react-hot-toast";
 
 const HomeWithLayout = lazy(() => import("./pages/HomeWithLayout"));
 const Login = lazy(() => import("./pages/Login"));
@@ -14,11 +19,35 @@ const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
 const MessageManagement = lazy(() => import("./pages/admin/MessageManagement"));
 
-let user = true;
-
 const App = () => {
-  return (
+  const dispatch = useDispatch();
+  const { user, loader } = useSelector(selectAuth);
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const response = await axios.get(getMyProfile, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        console.log(response);
+        dispatch(userExists(response.data.user));
+      } catch (error) {
+        dispatch(userNotExists());
+        console.log(error);
+      }
+    };
+
+    getUser();
+  }, []);
+
+  return loader ? (
+    <MUILayoutCircularLoader />
+  ) : (
     <BrowserRouter>
+      <Toaster position="top-right" />
       <Suspense fallback={<MUILayoutCircularLoader />}>
         <Routes>
           <Route element={<ProtectedRoute user={user} />}>

@@ -1,15 +1,19 @@
-import { Grid2 } from "@mui/material";
+import { Grid2, Skeleton } from "@mui/material";
 import Title from "../shared/Title";
 import Header from "./Header";
 import ChatList from "../specific/ChatList";
 import { sampleChats } from "../constants/SampleData";
 import { useParams } from "react-router";
 import Profile from "../specific/Profile";
+import { useGetChatQuery } from "../../redux/api/chatAPI/chatApi";
 
 const AppLayout = (WrappedComponent) => {
   const LayoutComponent = (props) => {
     const params = useParams();
     const { chatId } = params;
+
+    const { data, isLoading } = useGetChatQuery();
+    console.log(data);
 
     const handleDeleteChat = (e, chatId, groupChat) => {
       e.preventDefault();
@@ -30,13 +34,19 @@ const AppLayout = (WrappedComponent) => {
             sx={{ display: { xs: "none", sm: "block" } }}
             height={"100%"}
           >
-            <ChatList
-              chats={sampleChats}
-              chatId={chatId}
-              handleDeleteChat={handleDeleteChat}
-              newMessagesAlert={newMessagesAlerts}
-              onlineUsers={["1"]} // Example online users
-            />
+            {isLoading ? (
+              Array.from({ length: 10 }).map((_, index) => (
+                <Skeleton key={index} variant="rectangular" height={"5rem"} />
+              ))
+            ) : (
+              <ChatList
+                chats={data?.transformedChats}
+                chatId={chatId}
+                handleDeleteChat={handleDeleteChat}
+                newMessagesAlert={newMessagesAlerts}
+                onlineUsers={["1"]} // Example online users
+              />
+            )}
           </Grid2>
           <Grid2 size={{ xs: 12, sm: 8, md: 5, lg: 6 }} height={"100%"}>
             <WrappedComponent {...props} />

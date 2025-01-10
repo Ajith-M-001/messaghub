@@ -11,9 +11,17 @@ import {
 import { useState } from "react";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import { VisuallyHiddenInput } from "../components/styles/styledComponents";
+import axios from "axios";
+import { userLogin } from "../components/constants/config";
+import { useDispatch } from "react-redux";
+import { userExists } from "../redux/slices/auth";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router";
 
 const Login = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [loginData, setLoginData] = useState({
     username: "",
@@ -22,7 +30,7 @@ const Login = () => {
 
   // Register form state
   const [registerData, setRegisterData] = useState({
-    fullName: "",
+    name: "",
     username: "",
     email: "",
     password: "",
@@ -38,14 +46,58 @@ const Login = () => {
     }));
   };
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    console.log("login data:", loginData);
+
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      withCredentials: true,
+    };
+    try {
+      const response = await axios.post(userLogin, loginData, config);
+      console.log(response);
+      if (response.data.success === true) {
+        console.log("inside if");
+        dispatch(userExists(response.data.user));
+        toast.success(response.data.message);
+        navigate("/");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    console.log("register data:", registerData);
+
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/v1/user/new`,
+        registerData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
+      if (response.data.success === true) {
+        console.log("inside if asd");
+        navigate("/login");
+        setRegisterData({
+          name: "",
+          username: "",
+          email: "",
+          password: "",
+          avatar: null,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    }
   };
 
   const handleRegisterChange = (e) => {
@@ -172,11 +224,11 @@ const Login = () => {
               <TextField
                 required
                 fullWidth
-                label="Full name"
+                label="name"
                 margin="normal"
-                name="fullName"
+                name="name"
                 variant="outlined"
-                value={registerData.fullName}
+                value={registerData.name}
                 onChange={handleRegisterChange}
               />
               <TextField

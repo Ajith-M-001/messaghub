@@ -9,3 +9,7 @@ export const getSockets = (users = []) => {
   console.log(sockets);
   return sockets;
 };
+
+export const getBase64 = (file) => {
+  return `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+};

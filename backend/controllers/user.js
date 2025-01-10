@@ -6,11 +6,18 @@ import Request from "../model/request.js";
 import { NEW_REQUEST, REFETCH_CHATS } from "../constants/events.js";
 import { emitEvent } from "../utils/emitEvent.js";
 import { getOtherMember } from "../utils/helper.js";
+import { uploadFilesToCloudinary } from "../utils/cloudinaary.js";
 
 export const newUser = async (req, res) => {
   try {
     const { name, username, password } = req.body;
     const avatar = req.file;
+
+    console.log(name, username, password);
+    console.log(avatar);
+
+    const result = await uploadFilesToCloudinary([avatar]);
+    console.log("result", result);
 
     // Check if username already exists
     const existingUser = await User.findOne({ username });
@@ -26,10 +33,10 @@ export const newUser = async (req, res) => {
       name,
       username,
       password: hashedPassword,
-      // avatar: {
-      //   public_id: avatar?.filename,
-      //   url: avatar?.path,
-      // },
+      avatar: {
+        public_id: result[0].public_id,
+        url: result[0].url,
+      },
     });
 
     const savedUser = await user.save();
@@ -71,7 +78,7 @@ export const login = async (req, res, next) => {
         sameSite: "strict", // Prevent CSRF attacks
         maxAge: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
       })
-      .json({ success: true, message: "Login successful" });
+      .json({ success: true, message: "Login successful", user });
   } catch (error) {
     console.log(error);
   }
