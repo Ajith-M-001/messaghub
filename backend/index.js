@@ -14,6 +14,7 @@ import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from "./constants/events.js";
 import { v4 as uuid } from "uuid";
 import { getSockets } from "./utils/helper.js";
 import Message from "./model/message.js";
+import { v2 as cloudinary } from "cloudinary";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -72,6 +73,13 @@ io.on("connection", (socket) => {
   });
 });
 
+// Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET_KEY, // Click 'View API Keys' above to copy your API secret
+});
+
 // Middleware to parse JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -80,7 +88,16 @@ app.use(cookieParser());
 io.use((socket, next) => {});
 
 // Enable CORS
-app.use(cors());
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? process.env.PRODUCTION_URL
+        : process.env.DEVELOPMENT_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
 
 // Use userRouter for routes
 app.use("/api/v1/user", userRouter);
