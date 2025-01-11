@@ -1,5 +1,6 @@
+/* eslint-disable react/prop-types */
 import { IconButton, Stack } from "@mui/material";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { grayColor, orange } from "../components/constants/color";
 import AttachmentIcon from "@mui/icons-material/Attachment";
 import SendIcon from "@mui/icons-material/Send";
@@ -7,16 +8,36 @@ import { InputBox } from "../components/styles/styledComponents";
 import FileMenu from "../components/dialogs/FileMenu";
 import { sampleMessage } from "../components/constants/SampleData";
 import MessageComponent from "../components/shared/MessageComponent";
+import { getSocket } from "../socket";
+import { NEW_MESSAGE } from "../components/constants/events";
+import { useChatDetailsQuery } from "../redux/api/chatAPI/chatApi";
 
 const sampleUser = {
   _id: "1",
   name: "Jane Doe",
 };
 
-const Chat = () => {
+const Chat = ({ chatId = "" }) => {
   const containerRef = useRef(null);
+  const socket = getSocket();
+  const [message, setMessage] = useState("");
+  const { data: chatDetails, isLoading } = useChatDetailsQuery({ chatId });
+  const members = chatDetails?.chat?.members || [];
+  console.log("asdfsadfasdf", members);
 
-  return (
+  const submitHandler = (e) => {
+    e.preventDefault();
+
+    if (!message) return;
+    socket.emit(NEW_MESSAGE, { chatId, members, message });
+    setMessage("");
+  };
+
+  return isLoading ? (
+    <>
+      <h1>Loading...</h1>
+    </>
+  ) : (
     <>
       <Stack
         ref={containerRef}
@@ -41,7 +62,7 @@ const Chat = () => {
           />
         ))}
       </Stack>
-      <form style={{ height: "10%" }}>
+      <form onSubmit={submitHandler} style={{ height: "10%" }}>
         <Stack
           height={"100%"}
           position={"relative"}
@@ -58,7 +79,11 @@ const Chat = () => {
           >
             <AttachmentIcon />
           </IconButton>
-          <InputBox placeholder="Type Message Here..." />
+          <InputBox
+            placeholder="Type Message Here..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
           {/* InputBox component */}
           <IconButton
             type="submit"

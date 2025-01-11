@@ -10,6 +10,7 @@ import { getOtherMember } from "../utils/helper.js";
 import User from "../model/user.js";
 import Message from "../model/message.js";
 import { deleteFilesFromCloudinary } from "../utils/cloudinaary.js";
+import Request from "../model/request.js";
 
 export const newGroupChat = async (req, res) => {
   try {
@@ -18,7 +19,7 @@ export const newGroupChat = async (req, res) => {
     if (!name || !members) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "All fields are required 1" });
     }
 
     if (members.length < 2) {
@@ -107,7 +108,7 @@ export const addMembers = async (req, res) => {
     if (!chatId || !members) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "All fields are required 2" });
     }
 
     if (members.length < 1) {
@@ -185,7 +186,7 @@ export const removeMembers = async (req, res) => {
     if (!chatId || !userId) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "All fields are required 3" });
     }
 
     const [chat, userThatWillBeRemoved] = await Promise.all([
@@ -251,7 +252,7 @@ export const leaveGroup = async (req, res) => {
     if (!chatId) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "All fields are required 4" });
     }
 
     const chat = await Chat.findById(chatId);
@@ -316,7 +317,7 @@ export const sendAttachments = async (req, res) => {
     if (!chatId) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "All fields are required 5" });
     }
 
     const [chat, user] = await Promise.all([
@@ -382,7 +383,7 @@ export const getChatDetails = async (req, res) => {
     if (!chatId) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "All fields are required 6" });
     }
     if (req.query.populate === "true") {
       const chat = await Chat.findById(chatId)
@@ -438,11 +439,12 @@ export const renameGroup = async (req, res) => {
   try {
     const chatId = req.params.id;
     const { name } = req.body;
+    console.log("asdfasd",chatId, name);
 
     if (!chatId || !name) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "All fields are required 7" });
     }
 
     const chat = await Chat.findById(chatId);
@@ -474,6 +476,68 @@ export const renameGroup = async (req, res) => {
     return res.status(200).json({ success: true, message: "Group renamed" });
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const acceptFriendRequest = async (req, res) => {
+  try {
+    const { requestId, accept } = req.body;
+    console.log("asdf", requestId, accept);
+
+    if (!requestId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required 123" });
+    }
+
+    const request = await Request.findById(requestId)
+      .populate("sender", "name")
+      .populate("receiver", "name");
+
+    console.log(request);
+    console.log(req.user.userId);
+
+    if (!request) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Request not found" });
+    }
+
+    if (request.receiver._id.toString() !== req.user.userId.toString()) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    if (!accept) {
+      await Request.findByIdAndDelete(requestId);
+      return res
+        .status(200)
+        .json({ success: true, message: "Request rejected" });
+    }
+
+    const members = [request.sender._id, request.receiver._id];
+
+    await Promise.all([
+      Chat.create({
+        members,
+        groupChat: false,
+        name: `${request.sender.name} - ${request.receiver.name}`,
+      }),
+      Request.findByIdAndDelete(requestId),
+    ]);
+
+    emitEvent(req, REFETCH_CHATS, members, null);
+
+    res.status(200).json({
+      success: true,
+      message: "Request accepted",
+      senderId: request.sender._id,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
 

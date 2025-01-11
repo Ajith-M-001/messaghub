@@ -108,6 +108,7 @@ export const logout = async (req, res) => {
 export const searchUser = async (req, res) => {
   try {
     const { user = "" } = req.query;
+    console.log(user);
 
     const myChats = await Chat.find({
       groupChat: false,
@@ -182,66 +183,6 @@ export const sendFriendRequest = async (req, res) => {
   }
 };
 
-export const acceptFriendRequest = async (req, res) => {
-  try {
-    const { requestId, accept } = req.body;
-
-    if (!requestId || !accept) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
-    }
-
-    const request = await Request.findById(requestId)
-      .populate("sender", "name")
-      .populate("receiver", "name");
-
-    console.log(request);
-    console.log(req.user.userId);
-
-    if (!request) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Request not found" });
-    }
-
-    if (request.receiver._id.toString() !== req.user.userId.toString()) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-
-    if (!accept) {
-      await Request.findByIdAndDelete(requestId);
-      return res
-        .status(200)
-        .json({ success: true, message: "Request rejected" });
-    }
-
-    const members = [request.sender._id, request.receiver._id];
-
-    await Promise.all([
-      Chat.create({
-        members,
-        groupChat: false,
-        name: `${request.sender.name} - ${request.receiver.name}`,
-      }),
-      Request.findByIdAndDelete(requestId),
-    ]);
-
-    emitEvent(req, REFETCH_CHATS, members, null);
-
-    res.status(200).json({
-      success: true,
-      message: "Request accepted",
-      senderId: request.sender._id,
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
-  }
-};
 
 export const getMyNotifications = async (req, res) => {
   try {

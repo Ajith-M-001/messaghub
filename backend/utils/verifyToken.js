@@ -24,7 +24,6 @@ export const adminVerifyToken = (req, res, next) => {
         .json({ success: false, message: "Only admins can access this route" });
     }
     const decodedUser = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decodedUser);
 
     if (decodedUser.secretKey !== process.env.ADMIN_SECRET_KEY) {
       return res

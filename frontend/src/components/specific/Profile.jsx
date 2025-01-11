@@ -5,6 +5,9 @@ import PersonIcon from "@mui/icons-material/Person";
 import BadgeIcon from "@mui/icons-material/Badge"; // For the Name field
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import moment from "moment";
+import { useSelector } from "react-redux";
+import { selectAuth } from "../../redux/slices/auth";
+import { transformImage } from "../../lib/features";
 const ProfileCard = ({ text, Icon, heading }) => {
   return (
     <Stack
@@ -26,9 +29,13 @@ const ProfileCard = ({ text, Icon, heading }) => {
 };
 
 const Profile = () => {
+  const { user } = useSelector(selectAuth);
+  console.log(user);
   return (
     <Stack spacing={"2rem"} direction="column" alignItems={"center"}>
       <Avatar
+        src={transformImage(user?.avatar?.url)}
+        alt={user?.name}
         sx={{
           width: "6.25rem",
           height: "6.25rem",
@@ -42,11 +49,11 @@ const Profile = () => {
         text="Sample bio text goes here."
         Icon={AccountCircleIcon}
       />
-      <ProfileCard heading="Username" text="@Janedeo" Icon={PersonIcon} />
-      <ProfileCard heading="Name" text="Jane Doe" Icon={BadgeIcon} />
+      <ProfileCard heading="Username" text={user?.username} Icon={PersonIcon} />
+      <ProfileCard heading="Name" text={user?.name} Icon={BadgeIcon} />
       <ProfileCard
         heading="joined "
-        text={moment("2021-07-15T13:45:30").fromNow()}
+        text={moment(user?.createdAt).fromNow()}
         Icon={CalendarTodayIcon}
       />
     </Stack>

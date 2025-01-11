@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectAuth, userExists, userNotExists } from "./redux/slices/auth";
 import axios from "axios";
 import { Toaster } from "react-hot-toast";
+import { SocketProvider } from "./socket";
 
 const HomeWithLayout = lazy(() => import("./pages/HomeWithLayout"));
 const Login = lazy(() => import("./pages/Login"));
@@ -50,11 +51,17 @@ const App = () => {
       <Toaster position="top-right" />
       <Suspense fallback={<MUILayoutCircularLoader />}>
         <Routes>
-          <Route element={<ProtectedRoute user={user} />}>
+          <Route
+            element={
+              <SocketProvider>
+                <ProtectedRoute user={user} />
+              </SocketProvider>
+            }
+          >
             <Route path="/" element={<HomeWithLayout />} />
             <Route path="/chat/:chatId" element={<ChatWithLayout />} />
+            <Route path="/group" element={<Group />} />
           </Route>
-          <Route path="/group" element={<Group />} />
           <Route
             path="/login"
             element={

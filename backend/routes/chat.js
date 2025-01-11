@@ -12,6 +12,7 @@ import {
   renameGroup,
   deleteChat,
   getMessages,
+  acceptFriendRequest,
 } from "../controllers/chat.js";
 import { attachmentMulter } from "../middlewares/multer.js";
 
@@ -26,7 +27,8 @@ router.put("/add-member", addMembers);
 router.put("/remove-member", removeMembers);
 router.delete("/leave/:id", leaveGroup);
 router.post("/message", attachmentMulter, sendAttachments);
-router.get('/message/:id', getMessages);
+router.get("/message/:id", getMessages);
+router.put("/accept-request", acceptFriendRequest);
 router.route("/:id").get(getChatDetails).put(renameGroup).delete(deleteChat);
 
 export default router;

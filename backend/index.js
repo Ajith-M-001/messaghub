@@ -15,6 +15,7 @@ import { v4 as uuid } from "uuid";
 import { getSockets } from "./utils/helper.js";
 import Message from "./model/message.js";
 import { v2 as cloudinary } from "cloudinary";
+import { socketAuthticator } from "./utils/generateToken.js";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -22,17 +23,60 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {});
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
+});
 const userSocketIDs = new Map();
 
+// Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET_KEY, // Click 'View API Keys' above to copy your API secret
+});
+
+// Middleware to parse JSON
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+io.use((socket, next) => {
+  cookieParser()(
+    socket.request,
+    socket.request.res,
+    async (err) => await socketAuthticator(err, socket, next)
+  );
+});
+
+// Enable CORS
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
+
+// Use userRouter for routes
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/chat", chatRouter);
+app.use("/api/v1/admin", adminRouter);
+
+// Define a simple route
+app.get("/", (req, res) => {
+  res.send("Hello, World!");
+});
+
+app.use(errorMiddleware);
+
 io.on("connection", (socket) => {
-  const user = {
-    name: "John Doe",
-    _id: "asdfasdf",
-  };
+  const user = socket.user;
 
   userSocketIDs.set(user._id.toString(), socket.id);
-  console.log(userSocketIDs);
 
   socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {
     const messageForRealTime = {
@@ -72,44 +116,6 @@ io.on("connection", (socket) => {
     userSocketIDs.delete(user._id.toString());
   });
 });
-
-// Configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_SECRET_KEY, // Click 'View API Keys' above to copy your API secret
-});
-
-// Middleware to parse JSON
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-io.use((socket, next) => {});
-
-// Enable CORS
-app.use(
-  cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? process.env.PRODUCTION_URL
-        : process.env.DEVELOPMENT_URL,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  })
-);
-
-// Use userRouter for routes
-app.use("/api/v1/user", userRouter);
-app.use("/api/v1/chat", chatRouter);
-app.use("/api/v1/admin", adminRouter);
-
-// Define a simple route
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
-});
-
-app.use(errorMiddleware);
 
 // Create a function to start the server after the DB is connected
 const startServer = async () => {

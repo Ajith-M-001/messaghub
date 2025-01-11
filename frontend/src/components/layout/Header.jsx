@@ -20,7 +20,8 @@ import { lazy, Suspense, useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { userNotExists } from "../../redux/slices/auth";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { selectMisc, setIsMobile, setIsNotification, setIsSearch } from "../../redux/slices/misc";
 
 const SearchDialog = lazy(() => import("../specific/Search"));
 const NotificationsDialog = lazy(() => import("../specific/Notifictions"));
@@ -30,17 +31,16 @@ const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [isSearch, setIsSearch] = useState(false);
-  const [isNotification, setIsNotification] = useState(false);
+  const { isSearch, isNotification } = useSelector(selectMisc);
+
   const [isNewGroup, setIsNewGroup] = useState(false);
 
   const handleMobile = () => {
-    setIsMobile((prev) => !prev);
+    dispatch(setIsMobile(true));
   };
 
   const openNotifications = () => {
-    setIsNotification((prev) => !prev);
+    dispatch(setIsNotification(true));
   };
 
   const LogoutHandler = async () => {
@@ -64,8 +64,7 @@ const Header = () => {
   };
 
   const openSearchDialog = () => {
-    setIsSearch((prev) => !prev);
-    console.log("Search dialog");
+    dispatch(setIsSearch(true));
   };
 
   const openNewGround = () => {

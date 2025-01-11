@@ -8,24 +8,58 @@ import {
   Avatar,
   ListItem,
   Button,
+  Skeleton,
 } from "@mui/material";
 import { sampleNotification } from "../constants/SampleData";
 import { memo } from "react";
+import { useGetNotificationQuery } from "../../redux/api/userAPI/userApi";
+import { transformImage } from "../../lib/features";
+import { useDispatch, useSelector } from "react-redux";
+import { selectMisc, setIsNotification } from "../../redux/slices/misc";
+import toast from "react-hot-toast";
+import { useAcceptFriendRequestMutation } from "../../redux/api/chatAPI/chatApi";
 
 console.log(sampleNotification);
 
 const Notifications = () => {
-  const FriendRequestHandler = ({ _id, accept }) => {
-    console.log(`Friend request from ${_id} accepted`);
+  const { isNotification } = useSelector(selectMisc);
+  const dispatch = useDispatch();
+
+  const { data, isLoading } = useGetNotificationQuery();
+  const [acceptFriendRequest, { isLoading: isLoadingsendFriendRequest }] =
+    useAcceptFriendRequestMutation();
+
+  console.log(data?.allRequest);
+  const FriendRequestHandler = async ({ _id, accept }) => {
+    console.log(`Friend request from ${_id} accepted ${accept}`);
+    try {
+      const response = await acceptFriendRequest({
+        requestId: _id,
+        accept,
+      }).unwrap();
+      console.log(response);
+      toast.success(response.message);
+      dispatch(setIsNotification(false));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleNotificationClose = () => {
+    dispatch(setIsNotification(false));
   };
 
   return (
-    <Dialog open>
+    <Dialog open={isNotification} onClose={handleNotificationClose}>
       <Stack p={{ xs: "1rem", sm: "2rem" }} maxWidth={"md"}>
         <DialogTitle>Notifications</DialogTitle>
-        {sampleNotification.length > 0 ? (
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, index) => (
+            <Skeleton key={index} variant="rectangular" height={"1rem"} />
+          ))
+        ) : data?.allRequest?.length > 0 ? (
           <>
-            {sampleNotification.map((notification) => (
+            {data?.allRequest.map((notification) => (
               <NotificationItem
                 key={notification._id}
                 sender={notification.sender}
@@ -62,7 +96,7 @@ const NotificationItem = memo(({ sender, _id, handler }) => {
           minHeight: 48, // Ensure consistent height
         }}
       >
-        <Avatar />
+        <Avatar src={transformImage(avatar)} alt={name} />
 
         <Typography
           variant="body1"
