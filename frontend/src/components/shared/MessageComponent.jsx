@@ -10,6 +10,7 @@ const MessageComponent = ({ message, user }) => {
   const { sender, content, attachments = [], createdAt } = message;
 
   const sameSender = sender?._id === user?._id;
+
   const timeAgo = moment(createdAt).fromNow();
 
   return (
@@ -32,6 +33,7 @@ const MessageComponent = ({ message, user }) => {
         attachments.map((attachment, index) => {
           const url = attachment.url;
           const file = fileFormat(url);
+          console.log("attachment", attachment.url);
 
           return (
             <Box key={index}>

@@ -2,22 +2,58 @@ import { Drawer, Grid2, Skeleton } from "@mui/material";
 import Title from "../shared/Title";
 import Header from "./Header";
 import ChatList from "../specific/ChatList";
-import { sampleChats } from "../constants/SampleData";
 import { useParams } from "react-router";
 import Profile from "../specific/Profile";
 import { useGetChatQuery } from "../../redux/api/chatAPI/chatApi";
 import { useDispatch, useSelector } from "react-redux";
 import { selectMisc, setIsMobile } from "../../redux/slices/misc";
+import { selectAuth } from "../../redux/slices/auth";
+import { useSocket } from "../../hooks/hooks";
 import { getSocket } from "../../socket";
+import { NEW_MESSAGE_ALERT, NEW_REQUEST } from "../constants/events";
+import { useCallback, useEffect } from "react";
+import {
+  incrementNotification,
+  selectchat,
+  setNewMessagesAlert,
+} from "../../redux/slices/chat";
+import { getOrSaveFromStorage } from "../../lib/features";
 
 const AppLayout = (WrappedComponent) => {
   const LayoutComponent = (props) => {
     const params = useParams();
     const dispatch = useDispatch();
     const { chatId } = params;
+    const { newMessagesAlet } = useSelector(selectchat);
 
+    useEffect(() => {
+      getOrSaveFromStorage({
+        key: NEW_MESSAGE_ALERT,
+        value: newMessagesAlet,
+      });
+    }, [newMessagesAlet]);
+
+    const newMessagesAlertHandler = useCallback(
+      (data) => {
+        if (data.chatId === chatId) return;
+        dispatch(setNewMessagesAlert(data));
+      },
+      [dispatch, chatId]
+    );
+    const newRequestHandler = useCallback(() => {
+      dispatch(incrementNotification());
+    }, [dispatch]);
+    const eventHandler = {
+      [NEW_MESSAGE_ALERT]: newMessagesAlertHandler,
+      [NEW_REQUEST]: newRequestHandler,
+    };
+    const socket = getSocket();
+
+    useSocket(socket, eventHandler);
 
     const { isMobile } = useSelector(selectMisc);
+
+    const { user } = useSelector(selectAuth);
 
     const { data, isLoading } = useGetChatQuery();
     console.log(data);
@@ -27,14 +63,10 @@ const AppLayout = (WrappedComponent) => {
       console.log("Delete chat with id: ", chatId, groupChat);
     };
 
-    const newMessagesAlerts = [
-      { chatId: "1", count: 4 },
-      { chatId: "2", count: 0 },
-    ];
-
     const handleMobileClose = () => {
       dispatch(setIsMobile(false));
     };
+
     return (
       <>
         <Title title="MessageHup" />
@@ -50,6 +82,7 @@ const AppLayout = (WrappedComponent) => {
               chats={data?.transformedChats}
               chatId={chatId}
               handleDeleteChat={handleDeleteChat}
+              newMessagesAlert={newMessagesAlet}
             />
           </Drawer>
         )}
@@ -69,13 +102,12 @@ const AppLayout = (WrappedComponent) => {
                 chats={data?.transformedChats}
                 chatId={chatId}
                 handleDeleteChat={handleDeleteChat}
-                newMessagesAlert={newMessagesAlerts}
-                onlineUsers={["1"]} // Example online users
+                newMessagesAlert={newMessagesAlet}
               />
             )}
           </Grid2>
           <Grid2 size={{ xs: 12, sm: 8, md: 5, lg: 6 }} height={"100%"}>
-            <WrappedComponent {...props} chatId={chatId} />
+            <WrappedComponent user={user} {...props} chatId={chatId} />
           </Grid2>
           <Grid2
             sx={{

@@ -10,8 +10,8 @@ const chatApi = chatAppApi.injectEndpoints({
         method: "GET",
         credentials: "include",
       }),
-      providesTags: ["Chat"],
-      //   keepUnusedDataFor: 5,
+      // providesTags: ["Chat"],
+      keepUnusedDataFor: 0,
     }),
     chatDetails: build.query({
       query: ({ chatId, populate = false }) => {
@@ -25,8 +25,8 @@ const chatApi = chatAppApi.injectEndpoints({
           credentials: "include",
         };
       },
-      providesTags: ["Chat"],
-      //   keepUnusedDataFor: 5,
+      // providesTags: ["Chat"],
+      keepUnusedDataFor: 0,
     }),
     acceptFriendRequest: build.mutation({
       query: (data) => ({
@@ -37,6 +37,23 @@ const chatApi = chatAppApi.injectEndpoints({
       }),
       invalidatesTags: ["chat"],
     }),
+    sendAttachments: build.mutation({
+      query: (data) => ({
+        url: `${CHAT_URL}/message`,
+        method: "POST",
+        body: data,
+        credentials: "include",
+      }),
+    }),
+    getMessages: build.query({
+      query: ({ chatId, page }) => ({
+        url: `${CHAT_URL}/message/${chatId}?page=${page}`,
+        method: "GET",
+        credentials: "include",
+      }),
+      // providesTags: ["Message"],
+      keepUnusedDataFor: 0,
+    }),
   }),
 });
 
@@ -44,4 +61,6 @@ export const {
   useGetChatQuery,
   useChatDetailsQuery,
   useAcceptFriendRequestMutation,
+  useGetMessagesQuery,
+  useSendAttachmentsMutation,
 } = chatApi;

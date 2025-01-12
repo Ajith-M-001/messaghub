@@ -13,11 +13,8 @@ export const newUser = async (req, res) => {
     const { name, username, password } = req.body;
     const avatar = req.file;
 
-    console.log(name, username, password);
-    console.log(avatar);
 
     const result = await uploadFilesToCloudinary([avatar]);
-    console.log("result", result);
 
     // Check if username already exists
     const existingUser = await User.findOne({ username });
@@ -86,7 +83,6 @@ export const login = async (req, res, next) => {
 
 export const getMyProfile = async (req, res) => {
   try {
-    console.log(req.user);
     const user = await User.findById(req.user.userId);
     res.status(200).json({ success: true, user });
   } catch (error) {

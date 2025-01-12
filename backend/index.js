@@ -10,7 +10,12 @@ import cookieParser from "cookie-parser";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 import { Server } from "socket.io";
 import { createServer } from "http"; // Import http to create a server
-import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from "./constants/events.js";
+import {
+  NEW_MESSAGE,
+  NEW_MESSAGE_ALERT,
+  START_TYPING,
+  STOP_TYPING,
+} from "./constants/events.js";
 import { v4 as uuid } from "uuid";
 import { getSockets } from "./utils/helper.js";
 import Message from "./model/message.js";
@@ -30,6 +35,8 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
+
+app.set("io", io);
 const userSocketIDs = new Map();
 
 // Configuration
@@ -86,7 +93,7 @@ io.on("connection", (socket) => {
         _id: user._id,
         name: user.name,
       },
-      chatId,
+      chat: chatId,
       createdAt: new Date().toISOString(), // Corrected this line
     };
 
@@ -109,6 +116,18 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.log(error);
     }
+  });
+
+  socket.on(START_TYPING, ({ chatId, members }) => {
+    const membersSockets = getSockets(members);
+
+    socket.to(membersSockets).emit(START_TYPING, { chatId });
+  });
+
+  socket.on(STOP_TYPING, ({ chatId, members }) => {
+    const membersSockets = getSockets(members);
+
+    socket.to(membersSockets).emit(STOP_TYPING, { chatId });
   });
 
   socket.on("disconnect", () => {

@@ -7,6 +7,7 @@ import {
   IconButton,
   Tooltip,
   Backdrop,
+  Badge,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router"; // For routing (optional)
 import { orange } from "../constants/color";
@@ -21,7 +22,13 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { userNotExists } from "../../redux/slices/auth";
 import { useDispatch, useSelector } from "react-redux";
-import { selectMisc, setIsMobile, setIsNotification, setIsSearch } from "../../redux/slices/misc";
+import {
+  selectMisc,
+  setIsMobile,
+  setIsNotification,
+  setIsSearch,
+} from "../../redux/slices/misc";
+import { resetNotification, selectchat } from "../../redux/slices/chat";
 
 const SearchDialog = lazy(() => import("../specific/Search"));
 const NotificationsDialog = lazy(() => import("../specific/Notifictions"));
@@ -32,6 +39,9 @@ const Header = () => {
   const dispatch = useDispatch();
 
   const { isSearch, isNotification } = useSelector(selectMisc);
+  const { notificationCount } = useSelector(selectchat);
+
+  console.log("asdfsdafdsa", notificationCount);
 
   const [isNewGroup, setIsNewGroup] = useState(false);
 
@@ -40,6 +50,7 @@ const Header = () => {
   };
 
   const openNotifications = () => {
+    dispatch(resetNotification());
     dispatch(setIsNotification(true));
   };
 
@@ -114,6 +125,7 @@ const Header = () => {
                 icon={<NotificationsIcon />}
                 title="notifications"
                 onClick={openNotifications}
+                value={notificationCount}
               />
               <IconBtn
                 icon={<LogoutIcon />}
@@ -143,11 +155,17 @@ const Header = () => {
   );
 };
 
-const IconBtn = ({ icon, title, onClick }) => {
+const IconBtn = ({ icon, title, onClick, value }) => {
   return (
     <Tooltip title={title}>
       <IconButton color="inherit" size="large" onClick={onClick}>
-        {icon}
+        {value ? (
+          <Badge color="error" badgeContent={value}>
+            {icon}
+          </Badge>
+        ) : (
+          icon
+        )}
       </IconButton>
     </Tooltip>
   );

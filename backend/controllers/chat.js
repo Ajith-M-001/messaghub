@@ -1,6 +1,6 @@
 import {
   ALERT,
-  NEW_ATTACHMENT,
+  NEW_MESSAGE,
   NEW_MESSAGE_ALERT,
   REFETCH_CHATS,
 } from "../constants/events.js";
@@ -9,13 +9,15 @@ import { emitEvent } from "../utils/emitEvent.js";
 import { getOtherMember } from "../utils/helper.js";
 import User from "../model/user.js";
 import Message from "../model/message.js";
-import { deleteFilesFromCloudinary } from "../utils/cloudinaary.js";
+import {
+  deleteFilesFromCloudinary,
+  uploadFilesToCloudinary,
+} from "../utils/cloudinaary.js";
 import Request from "../model/request.js";
 
 export const newGroupChat = async (req, res) => {
   try {
     const { name, members } = req.body;
-    console.log(name, members);
     if (!name || !members) {
       return res
         .status(400)
@@ -29,7 +31,6 @@ export const newGroupChat = async (req, res) => {
     }
 
     const allmembers = [...members, req.user.userId];
-    console.log(allmembers);
 
     // Create the group chat in the database
     const newChat = await Chat.create({
@@ -141,10 +142,7 @@ export const addMembers = async (req, res) => {
       User.findById(member, "name")
     );
 
-    console.log("allNewMembersPromise", allNewMembersPromise);
-
     const allNewMembers = await Promise.all(allNewMembersPromise);
-    console.log("allNewMembers", allNewMembers);
 
     const uniqueMembers = allNewMembers
       .filter((member) => !chat.members.includes(member._id.toString()))
@@ -300,8 +298,6 @@ export const leaveGroup = async (req, res) => {
       chat.save(),
     ]);
 
-    console.log("user", user);
-
     emitEvent(req, ALERT, chat.members, `${user.name} left the group`);
 
     res.status(200).json({ success: true, message: "Left the group" });
@@ -330,25 +326,21 @@ export const sendAttachments = async (req, res) => {
         .json({ success: false, message: "Chat not found" });
     }
 
-    if (!chat.groupChat) {
-      return res
-        .status(400)
-        .json({ success: false, message: "This is not a group chat" });
-    }
-
     const files = req.files || [];
 
-    if (files.length < 1) {
+    console.log("files_police", files);
+
+    if (!req.files || req.files.length < 1) {
       return res
         .status(400)
         .json({ success: false, message: "No files uploaded" });
     }
 
     //upload files to cloudinary
-    const attachements = ["lol ", "lmao"];
+    const attachments = await uploadFilesToCloudinary(files);
     const messageForDB = {
       content: "",
-      attachements,
+      attachments,
       sender: user._id,
       chat: chatId,
     };
@@ -360,9 +352,13 @@ export const sendAttachments = async (req, res) => {
       },
     };
 
-    const message = await Message.create(messageForDB);
+    console.log("messageForDB", messageForDB);
 
-    emitEvent(req, NEW_ATTACHMENT, chat.members, {
+    const message = new Message(messageForDB);
+
+    await message.save();
+
+    emitEvent(req, NEW_MESSAGE, chat.members, {
       message: messageForRealTime,
       chat: chatId,
     });
@@ -403,7 +399,6 @@ export const getChatDetails = async (req, res) => {
 
       chat.members = chat.members.map((member) => {
         // console log member
-        console.log("Member:", member);
 
         return {
           _id: member._id,
@@ -412,8 +407,6 @@ export const getChatDetails = async (req, res) => {
           avatar: member.avatar?.url || "",
         };
       });
-
-      console.log("chatdasfdsfasd", chat);
 
       return res.status(200).json({ success: true, chat });
     } else {
@@ -439,7 +432,6 @@ export const renameGroup = async (req, res) => {
   try {
     const chatId = req.params.id;
     const { name } = req.body;
-    console.log("asdfasd",chatId, name);
 
     if (!chatId || !name) {
       return res
@@ -482,7 +474,6 @@ export const renameGroup = async (req, res) => {
 export const acceptFriendRequest = async (req, res) => {
   try {
     const { requestId, accept } = req.body;
-    console.log("asdf", requestId, accept);
 
     if (!requestId) {
       return res
@@ -493,9 +484,6 @@ export const acceptFriendRequest = async (req, res) => {
     const request = await Request.findById(requestId)
       .populate("sender", "name")
       .populate("receiver", "name");
-
-    console.log(request);
-    console.log(req.user.userId);
 
     if (!request) {
       return res

@@ -5,7 +5,6 @@ import { getBase64 } from "./helper.js";
 // Function to upload files to Cloudinary
 export const uploadFilesToCloudinary = async (files = []) => {
   const uploadPromises = files.map((file) => {
-    console.log("adsfasdfasd", file);
     return new Promise((resolve, reject) => {
       cloudinary.uploader.upload(
         getBase64(file),

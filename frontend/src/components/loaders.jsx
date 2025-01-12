@@ -1,4 +1,5 @@
 import { Grid2, Skeleton, Stack } from "@mui/material";
+import { BouncingSkeleton } from "./styles/styledComponents";
 
 export const MUILayoutCircularLoader = () => {
   return (
@@ -30,5 +31,49 @@ export const MUILayoutCircularLoader = () => {
         <Skeleton variant="rectangular" height="100vh" />
       </Grid2>
     </Grid2>
+  );
+};
+
+export const TypingLoader = () => {
+  return (
+    <Stack
+      spacing={"0.5rem"}
+      direction={"row"}
+      padding={"0.5rem"}
+      justifyContent={"center"}
+    >
+      <BouncingSkeleton
+        style={{
+          animationDelay: "0.1s",
+        }}
+        variant="circular"
+        width={15}
+        height={15}
+      />
+      <BouncingSkeleton
+        style={{
+          animationDelay: "0.2s",
+        }}
+        variant="circular"
+        width={15}
+        height={15}
+      />
+      <BouncingSkeleton
+        style={{
+          animationDelay: "0.4s",
+        }}
+        variant="circular"
+        width={15}
+        height={15}
+      />
+      <BouncingSkeleton
+        style={{
+          animationDelay: "0.6s",
+        }}
+        variant="circular"
+        width={15}
+        height={15}
+      />
+    </Stack>
   );
 };

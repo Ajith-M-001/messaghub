@@ -8,7 +8,6 @@ import Chat from "../model/chat.js";
 dotenv.config({
   path: "../.env",
 });
-console.log("sdfdsaf", process.env.MONGO_URI);
 
 // MongoDB connection function
 const connectDB = async () => {

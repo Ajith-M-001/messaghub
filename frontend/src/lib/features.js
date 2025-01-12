@@ -16,7 +16,8 @@ export const fileFormat = (url = "") => {
     fileExtention === "png" ||
     fileExtention === "jpeg" ||
     fileExtention === "gif" ||
-    fileExtention === "jpg"
+    fileExtention === "jpg" ||
+    fileExtention === "webp"
   ) {
     return "image";
   }
@@ -24,7 +25,10 @@ export const fileFormat = (url = "") => {
   return "file";
 };
 
-export const transformImage = (url = "", width = 100) => url;
+export const transformImage = (url = "", width = 100) => {
+  const newURL = url?.replace("upload", `upload/dpr_auto/w_${width}/`);
+  return newURL;
+};
 
 export const getLast7Days = () => {
   const currentDate = moment();
@@ -37,4 +41,14 @@ export const getLast7Days = () => {
   }
 
   return last7Days;
+};
+
+export const getOrSaveFromStorage = ({ key, value, get }) => {
+  if (get) {
+    return localStorage.getItem(key)
+      ? JSON.parse(localStorage.getItem(key))
+      : null;
+  } else {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
 };
