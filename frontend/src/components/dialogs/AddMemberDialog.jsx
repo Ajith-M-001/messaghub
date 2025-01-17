@@ -12,10 +12,18 @@ import {
 import { sampleUsers } from "../constants/SampleData";
 import UserItems from "../shared/UserItems";
 import { useState } from "react";
+import { useAddGroupMemberMutation } from "../../redux/api/chatAPI/chatApi";
+import { useDispatch, useSelector } from "react-redux";
+import { selectMisc, setIsAddMember } from "../../redux/slices/misc";
+import { useAvailableFriendsQuery } from "../../redux/api/userAPI/userApi";
 
-const AddMemberDialog = ({ addMember, isLoadingAddMember, chatId }) => {
-  const [members, setMembers] = useState(sampleUsers);
+const AddMemberDialog = ({ chatId }) => {
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [addMember, { isLoadingAddMember }] = useAddGroupMemberMutation();
+  const { isAddMember } = useSelector(selectMisc);
+  const dispatch = useDispatch();
+  const { data } = useAvailableFriendsQuery();
+  console.log("dfasdfasdf", data);
 
   const seleteMemberHandler = (id) => {
     setSelectedMembers((prev) =>
@@ -23,17 +31,26 @@ const AddMemberDialog = ({ addMember, isLoadingAddMember, chatId }) => {
     );
   };
 
-  const addMemberSubmitHandler = () => {
+  const addMemberSubmitHandler = async () => {
+    try {
+      const response = await addMember({
+        chatId,
+        members: selectedMembers,
+      });
+
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
     closeHandler();
   };
 
   const closeHandler = () => {
-    console.log("close");
+    dispatch(setIsAddMember(false));
     setSelectedMembers([]);
-    setMembers([]);
   };
   return (
-    <Dialog open={true} onClose={closeHandler}>
+    <Dialog open={isAddMember} onClose={closeHandler}>
       <Stack p={"1rem"} width={"20rem"} spacing={"1rem"}>
         <DialogTitle
           width={"100%"}
@@ -46,8 +63,8 @@ const AddMemberDialog = ({ addMember, isLoadingAddMember, chatId }) => {
 
       <DialogContent>
         <Stack>
-          {members.length > 0 ? (
-            members.map((user) => (
+          {data?.friends.length > 0 ? (
+            data?.friends.map((user) => (
               <UserItems
                 key={user._id}
                 user={user}

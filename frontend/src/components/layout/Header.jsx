@@ -17,7 +17,7 @@ import AddIcon from "@mui/icons-material/Add";
 import GroupsIcon from "@mui/icons-material/Groups";
 import LogoutIcon from "@mui/icons-material/Logout";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { userNotExists } from "../../redux/slices/auth";
@@ -25,6 +25,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   selectMisc,
   setIsMobile,
+  setIsNewGroup,
   setIsNotification,
   setIsSearch,
 } from "../../redux/slices/misc";
@@ -38,12 +39,8 @@ const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { isSearch, isNotification } = useSelector(selectMisc);
+  const { isSearch, isNotification, isNewGroup } = useSelector(selectMisc);
   const { notificationCount } = useSelector(selectchat);
-
-  console.log("asdfsdafdsa", notificationCount);
-
-  const [isNewGroup, setIsNewGroup] = useState(false);
 
   const handleMobile = () => {
     dispatch(setIsMobile(true));
@@ -79,7 +76,7 @@ const Header = () => {
   };
 
   const openNewGround = () => {
-    setIsNewGroup((prev) => !prev);
+    dispatch(setIsNewGroup(true));
   };
 
   const navigateToGroup = () => {

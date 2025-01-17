@@ -24,6 +24,7 @@ import { setIsFileMenu } from "../redux/slices/misc";
 import { useDispatch } from "react-redux";
 import { removeNewMessagesAlert } from "../redux/slices/chat";
 import { TypingLoader } from "../components/loaders";
+import { useNavigate } from "react-router";
 
 const Chat = ({ chatId = "", user }) => {
   const containerRef = useRef(null);
@@ -37,6 +38,7 @@ const Chat = ({ chatId = "", user }) => {
   const dispatch = useDispatch();
   const { data: chatDetails, isLoading } = useChatDetailsQuery({ chatId });
   const members = chatDetails?.chat?.members || [];
+  const navigate = useNavigate();
 
   const bottomRef = useRef(null);
 

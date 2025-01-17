@@ -30,6 +30,21 @@ export const userApi = chatAppApi.injectEndpoints({
       }),
       keepUnusedDataFor: 0,
     }),
+    availableFriends: builder.query({
+      query: (chatId) => {
+        let url = `${USER_URL}/getMyFriend`;
+        if (chatId) {
+          url += `?chatId=${chatId}`;
+        }
+        return {
+          url,
+          method: "GET",
+          credentials: "include",
+        };
+      },
+      // providesTags: ["Chat"],
+      keepUnusedDataFor: 0,
+    }),
   }),
 });
 
@@ -37,4 +52,5 @@ export const {
   useLazySearchUserQuery,
   useSendFriendRequestMutation,
   useGetNotificationQuery,
+  useAvailableFriendsQuery,
 } = userApi;

@@ -223,6 +223,8 @@ export const removeMembers = async (req, res) => {
       });
     }
 
+    const allmembers = chat.members.map((member) => member.toString());
+
     chat.members = chat.members.filter(
       (member) => member.toString() !== userId.toString()
     );
@@ -235,7 +237,7 @@ export const removeMembers = async (req, res) => {
       chat.members,
       `${userThatWillBeRemoved.name} removed from the group`
     );
-    emitEvent(req, REFETCH_CHATS, chat.members, null);
+    emitEvent(req, REFETCH_CHATS, allmembers, null);
 
     res.status(200).json({ success: true, message: "Members removed" });
   } catch (error) {
@@ -256,12 +258,6 @@ export const leaveGroup = async (req, res) => {
     const chat = await Chat.findById(chatId);
 
     //you are not a member of this group
-    if (!chat.members.includes(req.user.userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "You are not a member of this group",
-      });
-    }
 
     if (!chat) {
       return res
@@ -376,15 +372,20 @@ export const getChatDetails = async (req, res) => {
   try {
     const chatId = req.params.id;
 
+    console.log("chatId", chatId);
+
     if (!chatId) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required 6" });
     }
     if (req.query.populate === "true") {
+      console.log("populate");
       const chat = await Chat.findById(chatId)
         .populate("members", "name username avatar")
         .lean();
+
+      console.log("chatde", chat);
 
       if (!chat) {
         return res
@@ -392,19 +393,14 @@ export const getChatDetails = async (req, res) => {
           .json({ success: false, message: "Chat not found" });
       }
 
-      console.log(
-        "chatdsfasd",
-        chat.members.map((member) => member.avatar.url)
-      );
-
       chat.members = chat.members.map((member) => {
         // console log member
-
+        console.log("member", member);
         return {
-          _id: member._id,
-          name: member.name,
-          username: member.username,
-          avatar: member.avatar?.url || "",
+          _id: member?._id,
+          name: member?.name,
+          username: member?.username,
+          avatar: member?.avatar?.url || "",
         };
       });
 
@@ -596,6 +592,20 @@ export const getMessages = async (req, res) => {
     const { page = 1 } = req.query;
     const limit = 20;
     const skip = (page - 1) * limit;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Chat not found" });
+    }
+
+    if (!chat.members.includes(req.user.userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not a member of this chat",
+      });
+    }
 
     const [messages, totalMessagesCount] = await Promise.all([
       Message.find({ chat: chatId })

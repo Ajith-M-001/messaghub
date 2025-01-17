@@ -24,6 +24,18 @@ import DoneIcon from "@mui/icons-material/Done";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import UserItems from "../components/shared/UserItems";
+import {
+  useAddGroupMemberMutation,
+  useChatDetailsQuery,
+  useDeleteChatMutation,
+  useGetMyGroupsQuery,
+  useRemoveGroupMemberMutation,
+  useRenameGroupMutation,
+} from "../redux/api/chatAPI/chatApi";
+import { MUILayoutCircularLoader } from "../components/loaders";
+import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { selectMisc, setIsAddMember } from "../redux/slices/misc";
 
 const ConfirmDeleteDialog = lazy(() =>
   import("../components/dialogs/ConfirmDeleteDialog")
@@ -40,11 +52,47 @@ const Group = () => {
   const [groupName, setGroupName] = useState("");
   const [updatedGroupName, setUpdatedGroupName] = useState("");
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false);
+  const [isEdited, setIsEdited] = useState(false);
+  const { data, isLoading } = useGetMyGroupsQuery();
+  const dispatch = useDispatch();
+  const { isAddMember } = useSelector(selectMisc);
+  const groupDetails = useChatDetailsQuery(
+    { chatId, populate: true },
+    { skip: !chatId }
+  );
 
-  const isAddmember = false;
+  const [renameGroup] = useRenameGroupMutation();
+  const [removeMember] = useRemoveGroupMemberMutation();
+  const [deleteGroup, { isLoadingDelete }] = useDeleteChatMutation();
 
-  const removeMemberHandler = (id) => {
-    console.log("remove member", id);
+  useEffect(() => {
+    if (groupDetails.data) {
+      setGroupName(groupDetails?.data?.chat?.name);
+      setUpdatedGroupName(groupDetails?.data?.chat?.name);
+    }
+
+    return () => {
+      setGroupName("");
+      setUpdatedGroupName("");
+      setIsEdited(false);
+    };
+  }, [groupDetails.data]);
+
+  const removeMemberHandler = async (userId) => {
+    try {
+      const response = await removeMember({
+        chatId,
+        userId,
+      });
+      console.log("fdsfsdf", response.error.data.message);
+      if (response.data.success === "success") {
+        toast.success(response.data.message);
+      } else if (response.error.data.message) {
+        toast.error(response.error.data.message);
+      }
+    } catch (error) {
+      console.log(error?.error);
+    }
   };
 
   const openconfirmDeleteHandler = () => {
@@ -55,13 +103,20 @@ const Group = () => {
     setConfirmDeleteDialog(false);
   };
 
-  const deleteHandler = () => {
-    console.log("delete group");
-    setConfirmDeleteDialog(false);
+  const deleteHandler = async (chatId) => {
+    try {
+      const response = await deleteGroup(chatId);
+      console.log("delete group response", response);
+      navigate("/groups");
+    } catch (error) {
+      console.log("error", error);
+    } finally {
+      setConfirmDeleteDialog(false);
+    }
   };
 
   const openAddMemberHandler = () => {
-    console.log("add member");
+    dispatch(setIsAddMember(true));
   };
 
   useEffect(() => {
@@ -77,13 +132,21 @@ const Group = () => {
     };
   }, [chatId]);
 
-  const handleUpladateGroupName = () => {
-    console.log("update group name", updatedGroupName);
-    setGroupName(updatedGroupName);
-    setIsEdited(false);
+  const handleUpladateGroupName = async () => {
+    try {
+      const response = await renameGroup({
+        chatId,
+        name: updatedGroupName,
+      });
+      console.log(response);
+      setGroupName(updatedGroupName);
+      toast.success(response.data.message);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsEdited(false);
+    }
   };
-
-  const [isEdited, setIsEdited] = useState(false);
 
   const naviagateBack = () => {
     navigate("/");
@@ -190,7 +253,9 @@ const Group = () => {
     </>
   );
 
-  return (
+  return isLoading ? (
+    <MUILayoutCircularLoader />
+  ) : (
     <Grid2 bgcolor={"rgba(0,0,0,0.1)"} container height={"100vh"}>
       <Grid2
         bgcolor={"bisque"}
@@ -202,7 +267,7 @@ const Group = () => {
         }}
         size={{ sm: 4 }}
       >
-        <GroupList myGroups={sampleChats} chatId={chatId} />
+        <GroupList myGroups={data.groups} chatId={chatId} />
       </Grid2>
       <Grid2
         size={{ xs: 12, sm: 8 }}
@@ -236,7 +301,7 @@ const Group = () => {
               overflow={"auto"}
             >
               {/* group members */}
-              {sampleUsers.map((user) => (
+              {groupDetails?.data?.chat?.members.map((user) => (
                 <UserItems
                   key={user._id}
                   user={user}
@@ -255,9 +320,9 @@ const Group = () => {
         )}
       </Grid2>
 
-      {isAddmember && (
+      {isAddMember && (
         <Suspense fallback={<Backdrop open={true} />}>
-          <AddMemberDialog open={true} />
+          <AddMemberDialog chatId={chatId} />
         </Suspense>
       )}
 
@@ -266,7 +331,7 @@ const Group = () => {
           <ConfirmDeleteDialog
             open={confirmDeleteDialog}
             handleClose={closeconfirmDeleteHandler}
-            deleteHandler={deleteHandler}
+            deleteHandler={() => deleteHandler(groupDetails.data.chat._id)}
           />
         </Suspense>
       )}
@@ -281,7 +346,7 @@ const Group = () => {
         open={isMobile}
         onClose={handleMobileClose}
       >
-        <GroupList w={"50vw"} myGroups={sampleChats} chatId={chatId} />
+        <GroupList w={"50vw"} myGroups={data.groups} chatId={chatId} />
       </Drawer>
     </Grid2>
   );
