@@ -231,12 +231,10 @@ export const removeMembers = async (req, res) => {
 
     await chat.save();
 
-    emitEvent(
-      req,
-      ALERT,
-      chat.members,
-      `${userThatWillBeRemoved.name} removed from the group`
-    );
+    emitEvent(req, ALERT, chat.members, {
+      message: `${userThatWillBeRemoved.name} removed from the group`,
+      chatId,
+    });
     emitEvent(req, REFETCH_CHATS, allmembers, null);
 
     res.status(200).json({ success: true, message: "Members removed" });
@@ -294,7 +292,10 @@ export const leaveGroup = async (req, res) => {
       chat.save(),
     ]);
 
-    emitEvent(req, ALERT, chat.members, `${user.name} left the group`);
+    emitEvent(req, ALERT, chat.members, {
+      message: `${user.name} left the group`,
+      chatId,
+    });
 
     res.status(200).json({ success: true, message: "Left the group" });
   } catch (error) {

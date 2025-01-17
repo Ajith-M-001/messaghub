@@ -1,78 +1,11 @@
 /* eslint-disable react/prop-types */
 // /* eslint-disable react/prop-types */
-// import { Box, Stack, Typography } from "@mui/material";
-// import { Link } from "../styles/styledComponents";
-// import { memo } from "react";
-
-// const ChatItem = ({
-//   avatar = [],
-//   name,
-//   _id,
-//   groupChat = false,
-//   sameSender,
-//   isOnline,
-//   newMessage,
-//   index = 0,
-//   handleDeleteChatOpen,
-// }) => {
-//   return (
-//     <Link
-//       sx={{ padding: "0rem" }}
-//       to={`/chat/${_id}`}
-//       onContextMenu={(e) => handleDeleteChatOpen(e, _id, groupChat)}
-//       style={{ textDecoration: "none" }}
-//     >
-//       <div
-//         style={{
-//           display: "flex",
-//           alignItems: "center",
-//           gap: "1rem",
-//           padding: "1rem",
-//           backgroundColor: sameSender ? "#f0f0f0" : "unset",
-//           color: sameSender ? "black" : "unset",
-//           position: "relative",
-//         }}
-//       >
-//         {/* avatar and chat info */}
-//         <Stack direction="row" alignItems="center" spacing={2}>
-//           <img
-//             src={avatar}
-//             alt={name}
-//             style={{ width: "50px", height: "50px", borderRadius: "50%" }}
-//           />
-//           <Stack>
-//             <Typography variant="h6">{name}</Typography>
-//             {newMessage.count > 0 && (
-//               <Typography>{newMessage.count} new Message</Typography>
-//             )}
-//           </Stack>
-//         </Stack>
-
-//         {isOnline && (
-//           <Box
-//             sx={{
-//               width: "10px",
-//               height: "10px",
-//               borderRadius: "50%",
-//               backgroundColor: "green",
-//               position: "absolute",
-//               top: "50%",
-//               right: "1rem",
-//               transform: "translateY(-50%)",
-//             }}
-//           />
-//         )}
-//       </div>
-//     </Link>
-//   );
-// };
-
-// export default memo(ChatItem);
 
 import { memo } from "react";
 import { Link } from "../styles/styledComponents"; // Import the styled Link component
 import { Stack, Typography, Box } from "@mui/material"; // MUI components
 import AvatarCard from "./AvatarCard";
+import { motion } from "framer-motion";
 
 const ChatItem = ({
   avatar = [],
@@ -91,7 +24,10 @@ const ChatItem = ({
       onContextMenu={(e) => handleDeleteChat(e, _id, groupChat)}
       to={`/chat/${_id}`}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: "-100%" }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{  delay: index * 0.1 }}
         style={{
           display: "flex",
           gap: "3.5rem",
@@ -130,7 +66,7 @@ const ChatItem = ({
             }}
           />
         )}
-      </div>
+      </motion.div>
     </Link>
   );
 };
