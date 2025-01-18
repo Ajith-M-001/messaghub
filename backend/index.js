@@ -11,8 +11,11 @@ import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 import { Server } from "socket.io";
 import { createServer } from "http"; // Import http to create a server
 import {
+  CHAT_JOINED,
+  CHAT_LEAVED,
   NEW_MESSAGE,
   NEW_MESSAGE_ALERT,
+  ONLINE_USERS,
   START_TYPING,
   STOP_TYPING,
 } from "./constants/events.js";
@@ -38,6 +41,7 @@ const io = new Server(httpServer, {
 
 app.set("io", io);
 const userSocketIDs = new Map();
+const onlineUsers = new Set();
 
 // Configuration
 cloudinary.config({
@@ -83,7 +87,7 @@ app.use(errorMiddleware);
 io.on("connection", (socket) => {
   const user = socket.user;
 
-  userSocketIDs.set(user._id.toString(), socket.id);
+  userSocketIDs.set(user?._id.toString(), socket.id);
 
   socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {
     const messageForRealTime = {
@@ -130,9 +134,25 @@ io.on("connection", (socket) => {
     socket.to(membersSockets).emit(STOP_TYPING, { chatId });
   });
 
+  socket.on(CHAT_JOINED, ({ userId, members }) => {
+    onlineUsers.add(userId.toString());
+
+    const membersSockets = getSockets(members);
+    io.to(membersSockets).emit(ONLINE_USERS, Array.from(onlineUsers));
+  });
+
+  socket.on(CHAT_LEAVED, ({ userId, members }) => {
+    onlineUsers.delete(userId.toString());
+
+    const membersSockets = getSockets(members);
+    io.to(membersSockets).emit(ONLINE_USERS, Array.from(onlineUsers));
+  });
+
   socket.on("disconnect", () => {
     console.log("user disconnected");
     userSocketIDs.delete(user._id.toString());
+    onlineUsers.delete(user._id.toString());
+    socket.broadcast.emit(ONLINE_USERS, Array.from(onlineUsers));
   });
 });
 

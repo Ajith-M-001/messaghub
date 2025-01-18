@@ -1,12 +1,12 @@
+import { Avatar } from "@mui/material";
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Table from "../../components/shared/Table";
-import AvatarCard from "../../components/shared/AvatarCard";
-import { dashboardTableData } from "../../components/constants/SampleData";
-import { Avatar } from "@mui/material";
 import { transformImage } from "../../lib/features";
+import { useUserManagementQuery } from "../../redux/api/adminApi/adminapi";
 
 const UserManagement = () => {
+  const { data } = useUserManagementQuery();
   const [rows, setRows] = useState([]);
   const columns = [
     {
@@ -52,13 +52,13 @@ const UserManagement = () => {
   ];
 
   useEffect(() => {
-    const rowData = dashboardTableData.users.map((user) => ({
+    const rowData = data?.users.map((user) => ({
       ...user,
       id: user._id,
       avatar: transformImage(user.avatar, 50),
     }));
     setRows(rowData);
-  }, []);
+  }, [data]);
   return (
     <AdminLayout>
       <Table heading={"user management"} rows={rows} columns={columns} />

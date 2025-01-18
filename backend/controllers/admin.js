@@ -7,6 +7,9 @@ export const adminLogin = async (req, res) => {
   try {
     const { secretKey } = req.body;
 
+    console.log("secretkey", secretKey);
+    console.log("process.env.ADMIN_SECRET_KEY", process.env.ADMIN_SECRET_KEY);
+
     if (!secretKey) {
       return res
         .status(400)

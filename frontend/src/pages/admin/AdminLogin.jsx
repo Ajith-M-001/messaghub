@@ -1,17 +1,24 @@
 import { Button, Container, TextField, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router";
-
-const isAdmin = true;
+import { selectAuth } from "../../redux/slices/auth";
+import { useDispatch, useSelector } from "react-redux";
+import { adminLogin, getAdmin } from "../../redux/thunks/admin";
 
 const AdminLogin = () => {
   const [adminLoginData, setAdminLoginData] = useState({
     secretKet: "",
   });
+  const { isAdmin } = useSelector(selectAuth);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getAdmin());
+  }, [dispatch]);
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    console.log("login data:", adminLoginData);
+    dispatch(adminLogin(adminLoginData.secretKet));
   };
 
   const handleAdminLoginChange = (e) => {
@@ -22,7 +29,7 @@ const AdminLogin = () => {
     }));
   };
 
-  if(isAdmin) return <Navigate to="/admin/dashboard" />
+  if (isAdmin) return <Navigate to="/admin/dashboard" />;
   return (
     <Container
       sx={{

@@ -17,8 +17,21 @@ import PersonIcon from "@mui/icons-material/Person";
 import MessageIcon from "@mui/icons-material/Message";
 import { DoughnutChart, LineChart } from "../../components/specific/charts";
 import zIndex from "@mui/material/styles/zIndex";
+import { useDashboardStatsQuery } from "../../redux/api/adminApi/adminapi";
 
 const Dashboard = () => {
+  const { data, isLoading, isError, isFetching, error } =
+    useDashboardStatsQuery();
+
+  const { stats } = data || {};
+
+  if (isError) {
+    return (
+      <Container>
+        <Typography variant="h1">Error occured : ${error.message}</Typography>
+      </Container>
+    );
+  }
   const Widgets = ({ title, value, Icon }) => {
     return (
       <Paper
@@ -88,12 +101,18 @@ const Dashboard = () => {
       }}
       margin={"2rem 0"}
     >
-      <Widgets title="users" value={"14"} Icon={PersonIcon} />
-      <Widgets title="Chats" value={"10"} Icon={GroupsIcon} />
-      <Widgets title="messages" value={"1080"} Icon={MessageIcon} />
+      <Widgets title="users" value={stats?.usersCount} Icon={PersonIcon} />
+      <Widgets title="Chats" value={stats?.totalChatsCount} Icon={GroupsIcon} />
+      <Widgets
+        title="messages"
+        value={stats?.messagesCount}
+        Icon={MessageIcon}
+      />
     </Stack>
   );
-  return (
+  return isLoading || isFetching ? (
+    <p>loading....</p>
+  ) : (
     <AdminLayout>
       <Container component={"main"}>
         {Appbar}
@@ -108,7 +127,7 @@ const Dashboard = () => {
             }}
           >
             <Typography>Last Messages</Typography>
-            <LineChart value={[4, 76, 89, 12, 34, 79]} />
+            <LineChart value={stats?.messages} />
           </Paper>
           <Paper
             sx={{
@@ -129,7 +148,10 @@ const Dashboard = () => {
             <DoughnutChart
               style={{ zIndex: 100 }}
               labels={["sinlge chats", "groups chats"]}
-              value={[50, 100]}
+              value={[
+                stats?.totalChatsCount - stats?.groupsCount || 0,
+                stats?.groupsCount || 0,
+              ]}
             />
 
             <Stack

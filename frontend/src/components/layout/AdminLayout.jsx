@@ -17,6 +17,9 @@ import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import GroupsIcon from "@mui/icons-material/Groups";
 import MessageIcon from "@mui/icons-material/Message";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuth } from "../../redux/slices/auth";
+import { adminLogout } from "../../redux/thunks/admin";
 
 const Link = styled(LinkComponent)({
   textDecoration: "none",
@@ -47,13 +50,12 @@ const ADMIN_MENU = [
   },
 ];
 
-const isAdmin = true;
-
 const Sidebar = ({ width = "100%" }) => {
   const location = useLocation();
+  const dispatch = useDispatch();
 
   const logoutHandler = () => {
-    alert("Logout");
+    dispatch(adminLogout());
   };
 
   return (
@@ -118,6 +120,8 @@ const AdminLayout = ({ children }) => {
   const handleMobile = () => {
     setIsMobile((prev) => !prev);
   };
+
+  const { isAdmin } = useSelector(selectAuth);
 
   if (!isAdmin) return <Navigate to="/admin" />;
   return (

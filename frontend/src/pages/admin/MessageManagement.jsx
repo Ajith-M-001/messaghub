@@ -7,7 +7,7 @@ import { fileFormat, transformImage } from "../../lib/features";
 import AvatarCard from "../../components/shared/AvatarCard";
 import moment from "moment";
 import RenderAttachment from "../../components/shared/RenderAttachment";
-
+import { useMessageManagementQuery } from "../../redux/api/adminApi/adminapi";
 
 const columns = [
   {
@@ -58,13 +58,10 @@ const columns = [
     headerClassName: "table-header",
     flex: 1,
     renderCell: (params) => (
-      console.log(params),
-      (
-        <Stack>
-          <Avatar alt={params.row.sender.name} src={params.row.sender.avatar} />
-          <span>{params.row.sender.name}</span>
-        </Stack>
-      )
+      <Stack>
+        <Avatar alt={params.row.sender.name} src={params.row.sender.avatar} />
+        <span>{params.row.sender.name}</span>
+      </Stack>
     ),
   },
   {
@@ -88,9 +85,12 @@ const columns = [
 ];
 const MessageManagement = () => {
   const [rows, setRows] = useState([]);
+  const { data } = useMessageManagementQuery();
+
+  console.log("message_asdfasdf", data);
 
   useEffect(() => {
-    const rowData = dashboardTableData.messages.map((message) => ({
+    const rowData = data?.messages.map((message) => ({
       ...message,
       id: message._id,
       sender: {
@@ -101,10 +101,15 @@ const MessageManagement = () => {
     }));
 
     setRows(rowData);
-  }, []);
+  }, [data]);
   return (
     <AdminLayout>
-      <Table heading={"All Messages"} rowHeight={100} rows={rows} columns={columns} />
+      <Table
+        heading={"All Messages"}
+        rowHeight={100}
+        rows={rows}
+        columns={columns}
+      />
     </AdminLayout>
   );
 };

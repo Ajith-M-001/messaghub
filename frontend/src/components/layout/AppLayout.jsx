@@ -18,9 +18,10 @@ import { getSocket } from "../../socket";
 import {
   NEW_MESSAGE_ALERT,
   NEW_REQUEST,
+  ONLINE_USERS,
   REFETCH_CHATS,
 } from "../constants/events";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   incrementNotification,
   selectchat,
@@ -38,6 +39,7 @@ const AppLayout = (WrappedComponent) => {
     const { data, isLoading, refetch } = useGetChatQuery();
     const navigate = useNavigate();
     const deleteMenuAnchor = useRef(null);
+    const [onlineUsers, setOnlineUsers] = useState([]);
 
     useEffect(() => {
       getOrSaveFromStorage({
@@ -62,10 +64,15 @@ const AppLayout = (WrappedComponent) => {
       navigate("/");
     }, [refetch, navigate]);
 
+    const onlineUserslistener = useCallback((data) => {
+      setOnlineUsers(data);
+    }, []);
+
     const eventHandler = {
       [NEW_MESSAGE_ALERT]: newMessagesAlertHandler,
       [NEW_REQUEST]: newRequestHandler,
       [REFETCH_CHATS]: refetchListener,
+      [ONLINE_USERS]: onlineUserslistener,
     };
     const socket = getSocket();
 
@@ -106,6 +113,7 @@ const AppLayout = (WrappedComponent) => {
               chatId={chatId}
               handleDeleteChat={handleDeleteChat}
               newMessagesAlert={newMessagesAlet}
+              onlineUsers={onlineUsers}
             />
           </Drawer>
         )}
@@ -126,6 +134,7 @@ const AppLayout = (WrappedComponent) => {
                 chatId={chatId}
                 handleDeleteChat={handleDeleteChat}
                 newMessagesAlert={newMessagesAlet}
+                onlineUsers={onlineUsers}
               />
             )}
           </Grid2>

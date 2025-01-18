@@ -5,9 +5,13 @@ import { dashboardTableData } from "../../components/constants/SampleData";
 import { Avatar, Stack } from "@mui/material";
 import { transformImage } from "../../lib/features";
 import AvatarCard from "../../components/shared/AvatarCard";
+import { useChatManagementQuery } from "../../redux/api/adminApi/adminapi";
 
 const ChatsManagement = () => {
   const [rows, setRows] = useState([]);
+  const { data } = useChatManagementQuery();
+
+  console.log("sadfsadfsdafasdf",data);
   const columns = [
     {
       field: "_id",
@@ -32,7 +36,7 @@ const ChatsManagement = () => {
       flex: 1,
     },
     {
-      field: "totalmembers",
+      field: "totalMembers",
       headerName: "Total Members",
       headerClassName: "table-header",
       flex: 1,
@@ -48,7 +52,7 @@ const ChatsManagement = () => {
       ),
     },
     {
-      field: "totalmessages",
+      field: "totalMessages",
       headerName: "Total Messages",
       headerClassName: "table-header",
       flex: 1,
@@ -71,7 +75,7 @@ const ChatsManagement = () => {
   ];
 
   useEffect(() => {
-    const rowData = dashboardTableData.chats.map((chat) => ({
+    const rowData = data?.chats.map((chat) => ({
       ...chat,
       id: chat._id,
       avatar: chat.avatar.map((avatar) => transformImage(avatar, 50)),
@@ -79,10 +83,10 @@ const ChatsManagement = () => {
       creator: {
         name: chat.creator.name,
         avatar: transformImage(chat.creator.avatar, 50),
-      }
+      },
     }));
     setRows(rowData);
-  }, []);
+  }, [data]);
   return (
     <AdminLayout>
       <Table heading={"All Chats"} rows={rows} columns={columns} />
